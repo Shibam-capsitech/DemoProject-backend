@@ -54,9 +54,21 @@ namespace DemoProject_backend.Controllers
             {
                 return BadRequest(fileResult.Error.Message);
             }
+            var lastTask = await _taskService.GetLastTask();
+            int nextNumber = 1;
 
+            if (lastTask != null && !string.IsNullOrEmpty(lastTask.TId))
+            {
+                string lastNumberPart = lastTask.TId.Replace("TID-", "");
+                if (int.TryParse(lastNumberPart, out int parsedNumber))
+                {
+                    nextNumber = parsedNumber + 1;
+                }
+            }
+            string newCustomId = $"TID-{nextNumber.ToString("D3")}";
             var task = new Models.Task
             {
+                TId= newCustomId,
                 Type = dto.type,
                 Title = dto.title,
                 BusinessName = dto.businessName,

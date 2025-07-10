@@ -104,7 +104,14 @@ namespace DemoProject_backend.Services
         {
             await _task.FindOneAndReplaceAsync(task => task.Id == taskId, updatedTask);
         }
-
+        public async Task<TaskModel?> GetLastTask()
+        {
+            return await _task
+                .Find(FilterDefinition<TaskModel>.Empty)
+                .SortByDescending(b => b.TId)
+                .Limit(1)
+                .FirstOrDefaultAsync();
+        }
         public async Task CreateSubTask(SubTask subtaskDto, string taskId)
         {
             var subtask = new SubTask

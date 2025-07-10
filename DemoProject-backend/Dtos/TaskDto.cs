@@ -36,6 +36,7 @@ namespace DemoProject_backend.Dtos
         [BsonRepresentation(BsonType.ObjectId)]
         public string _id { get; set; }
 
+        public string tid { get; set; }
         public string type { get; set; }
 
         public string businessname { get; set; }

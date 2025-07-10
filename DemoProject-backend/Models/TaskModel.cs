@@ -12,6 +12,9 @@ namespace DemoProject_backend.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 
+        [BsonElement("tid")]
+        public string TId { get; set; }
+
         [BsonElement("type")]
         public string Type { get; set; }
 
