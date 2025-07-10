@@ -65,6 +65,8 @@ namespace DemoProject_backend.Dtos
         public User userDetails { get; set; }
         public Business businessDetails { get; set;}
         public DateTime createdAt { get; set; }
+
+        public List<SubTask>  subtask  { get; set; }
     }
 
     public class AddSubTaskDto
@@ -72,4 +74,5 @@ namespace DemoProject_backend.Dtos
         public string title { get; set;}
         public string status { get; set;}
     }
+
 }

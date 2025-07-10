@@ -1,9 +1,9 @@
-﻿using System.Text.Json.Serialization;
+﻿//using System.Text.Json.Serialization;
 
-[JsonConverter(typeof(JsonStringEnumConverter))]
-public enum SubTaskStatus
-{
-    Waiting,
-    InProgress,
-    Completed,
-}
+//[JsonConverter(typeof(JsonStringEnumConverter))]
+//public enum SubTaskStatus
+//{
+//    Waiting,
+//    InProgress,
+//    Completed,
+//}

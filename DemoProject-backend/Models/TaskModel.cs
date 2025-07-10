@@ -65,7 +65,7 @@ namespace DemoProject_backend.Models
         public string Title { get; set; }
 
         [BsonElement("Status")]
-        public SubTaskStatus Status { get; set; }
+        public string Status { get; set; }
     }
 }
 

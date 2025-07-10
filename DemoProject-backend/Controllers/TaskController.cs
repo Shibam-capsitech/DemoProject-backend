@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.FileProviders;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using System.Security.Claims;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -66,6 +68,7 @@ namespace DemoProject_backend.Controllers
                 Attachment = fileResult.SecureUrl.ToString(),
                 UserId = userId,
                 BusinessId = dto.businessId,
+                SubTask = new List<SubTask>(),
             };
             await _taskService.CreateTask(task);
 
@@ -74,8 +77,10 @@ namespace DemoProject_backend.Controllers
                  new FieldChange
                  {
                     Field = "Task Created",
-                     PreviousValue = null,
-                      NewValue = $"New task created: {dto.title}"
+                    PreviousValue = null,
+                    NewValue = $"New task created: {dto.title}",
+                    IsChangeRegardingSubTask = false,
+                    IsChangeRegardingTask= true
                   }
                   };
             var taskHistory = new TaskHistoryModel
@@ -84,9 +89,18 @@ namespace DemoProject_backend.Controllers
                 BusinessId = dto.businessId,
                 UpdatedBy = userId,
                 TimeStamp = DateTime.UtcNow,
-                Changes = changes
+                Changes = changes,
+                ChangeType = "Create"
             };
             await _taskHistoryService.CreateTaskHistory(taskHistory);
+
+            var subtask = new SubTask
+            {
+                Title ="Gather information from client",
+                Status= "Waiting",
+            };
+            await _taskService.CreateSubTask(subtask, task.Id);
+
             return Ok("New task created");
         }
 
@@ -193,6 +207,7 @@ namespace DemoProject_backend.Controllers
                 BusinessId = task.BusinessId,
                 UserId = task.UserId,
                 Attachment = task.Attachment,
+                SubTask = task.SubTask,
             };
             var changes = new List<FieldChange>();
 
@@ -229,7 +244,8 @@ namespace DemoProject_backend.Controllers
                     BusinessId= businessId,
                     UpdatedBy = userId,
                     TimeStamp = DateTime.UtcNow,
-                    Changes = changes
+                    Changes = changes,
+                     ChangeType = "Update"
                 };
 
                 await _taskHistoryService.CreateTaskHistory(taskHistory);
@@ -238,18 +254,146 @@ namespace DemoProject_backend.Controllers
             return Ok("Task updated successfully");
         }
 
-        //[HttpPost("add-subtask/{taskId}")]
-        //public async Task<IActionResult> AddSubTask(AddSubTaskDto dto ,string taskId)
-        //{
-        //    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        [HttpPost("add-subtask/{taskId}")]
+        public async Task<IActionResult> AddSubTask(AddSubTaskDto dto, string taskId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        //    if (userId == null)
-        //    {
-        //        return Unauthorized("Unauthorized");
-        //    }
-        //    await _taskService.CreateSubTask( dto, taskId);
-        //    return Ok("Subtask created !");
-        //}
+            if (userId == null)
+            {
+                return Unauthorized("Unauthorized");
+            }
+
+            var subtask = new SubTask
+            {
+                Title = dto.title,
+                Status = dto.status
+            };
+            await _taskService.CreateSubTask(subtask, taskId);
+
+            Models.Task task = await _taskService.GetTaskByTaskId(taskId);
+            var changes = new List<FieldChange>
+                {
+                 new FieldChange
+                 {
+                    Field = "SubTask Created",
+                     PreviousValue = null,
+                      NewValue = $"New sub task created: {dto.title}",
+                      SubTaskId = subtask.Id,
+                      IsChangeRegardingSubTask = true,
+                      IsChangeRegardingTask= false
+                  }
+                  };
+            var taskHistory = new TaskHistoryModel
+            {
+                TaskId = taskId,
+                BusinessId = task.BusinessId,
+                UpdatedBy = userId,
+                TimeStamp = DateTime.UtcNow,
+                Changes = changes,
+                ChangeType = "Create"
+            };
+            await _taskHistoryService.CreateTaskHistory(taskHistory);
+            return Ok("Subtask created !");
+        }
+
+        [HttpPost("change-subtask-status/{subtaskId}")]
+        public async Task<IActionResult> UpdateSubtaskStaus(
+            string subtaskId,
+            [FromQuery] string taskId,
+            [FromQuery] string status)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized("Unauthorized");
+
+
+            Models.Task task = await _taskService.GetTaskByTaskId(taskId);
+            if (task == null)
+                return NotFound("Task not found");
+            var subtask = task.SubTask.FirstOrDefault(s => s.Id == subtaskId);
+            if (subtask == null)
+                return NotFound("Subtask not found");
+
+            var previousStatus = subtask.Status;
+
+  
+            await _taskService.UpdateSubtaskStaus(subtaskId, status);
+
+            var changes = new List<FieldChange>
+            {
+             new FieldChange
+             {
+            Field = "Subtask Status",
+            PreviousValue = previousStatus,
+            NewValue = status,
+            SubTaskId = subtaskId,
+            IsChangeRegardingSubTask = true,
+            IsChangeRegardingTask = false
+             }
+             };
+
+            var taskHistory = new TaskHistoryModel
+            {
+                TaskId = taskId,
+                BusinessId = task.BusinessId,
+                UpdatedBy = userId,
+                TimeStamp = DateTime.UtcNow,
+                Changes = changes,
+                 ChangeType = "Update"
+            };
+
+            await _taskHistoryService.CreateTaskHistory(taskHistory);
+            return Ok("Subtask status updated");
+        }
+
+
+        [HttpPost("delete-subtask/{subtaskId}")]
+        public async Task<IActionResult> DeleteSubtask([FromRoute] string subtaskId, [FromQuery] string taskId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized("Unauthorized");
+
+            var task = await _taskService.GetTaskByTaskId(taskId);
+            if (task == null)
+                return NotFound("Task not found");
+
+            var subtask = task.SubTask.FirstOrDefault(s => s.Id == subtaskId);
+            if (subtask == null)
+                return NotFound("Subtask not found");
+
+            var deletedSubtaskTitle = subtask.Title;
+
+            await _taskService.DeleteSubTask(subtaskId);
+            var changes = new List<FieldChange>
+            {
+              new FieldChange
+               {
+                Field = "Subtask Deleted",
+                PreviousValue = $"Subtask: {deletedSubtaskTitle}",
+                NewValue = "Deleted",
+                SubTaskId = subtaskId,
+                IsChangeRegardingSubTask = true,
+                IsChangeRegardingTask = false,
+                }
+               };
+
+            var taskHistory = new TaskHistoryModel
+            {
+                TaskId = taskId,
+                BusinessId = task.BusinessId,
+                UpdatedBy = userId,
+                TimeStamp = DateTime.UtcNow,
+                Changes = changes,
+                ChangeType = "Delete"
+            };
+
+            await _taskHistoryService.CreateTaskHistory(taskHistory);
+
+            return Ok("Subtask deleted and history logged");
+        }
+
 
 
     }

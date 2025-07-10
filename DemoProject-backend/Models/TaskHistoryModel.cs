@@ -25,10 +25,14 @@ namespace DemoProject_backend.Models
 
         [BsonElement("changes")]
         public List<FieldChange> Changes { get; set; }
+
+        [BsonElement("ChangeType")]
+        public string? ChangeType { get; set; }
     }
 
     public class FieldChange
     {
+        
         [BsonElement("field")]
         public string? Field { get; set; }
 
@@ -37,5 +41,16 @@ namespace DemoProject_backend.Models
 
         [BsonElement("new")]
         public string? NewValue { get; set; }
+
+        [BsonRepresentation(BsonType.ObjectId)]
+        [BsonElement("subtaskId")]
+        public string? SubTaskId { get; set; }
+
+        [BsonElement("isChangeRegardingTask")]
+        public bool? IsChangeRegardingTask { get; set; }
+
+        [BsonElement("isChangeRegardingSubTask")]
+        public bool? IsChangeRegardingSubTask { get; set; }
+
     }
 }

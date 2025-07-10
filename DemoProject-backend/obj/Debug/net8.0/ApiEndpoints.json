@@ -148,13 +148,39 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "DemoProject_backend.Models.SubTask",
+        "Type": "DemoProject_backend.Dtos.AddSubTaskDto",
         "IsRequired": true
       },
       {
         "Name": "taskId",
         "Type": "System.String",
         "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.TaskController",
+    "Method": "UpdateSubtaskStaus",
+    "RelativePath": "api/Task/change-subtask-status/{subtaskId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "subtaskId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "taskId",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "status",
+        "Type": "System.String",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -220,6 +246,27 @@
       {
         "Name": "file",
         "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.TaskController",
+    "Method": "DeleteSubtask",
+    "RelativePath": "api/Task/delete-subtask/{subtaskId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "subtaskId",
+        "Type": "System.String",
+        "IsRequired": true
+      },
+      {
+        "Name": "taskId",
+        "Type": "System.String",
         "IsRequired": false
       }
     ],

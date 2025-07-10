@@ -13,16 +13,26 @@ namespace DemoProject_backend.Dtos
         public string UpdatedBy { get; set; }
         public DateTime TimeStamp { get; set; }
         public List<FieldChangeDto> Changes { get; set; }
+        public string? ChangeType { get; set; }
     }
 
     public class FieldChangeDto
     {
-        public string field { get; set; }
-        public string previous
+        public string? field { get; set; }
+        public string? previous
         { get; set; }
 
         [BsonElement("new")]
-        public string newval { get; set; }
+        public string? newval { get; set; }
+
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? subtaskId { get; set; }
+
+        [BsonElement("isChangeRegardingTask")]
+        public bool? IsChangeRegardingTask { get; set; }
+
+        [BsonElement("isChangeRegardingSubTask")]
+        public bool? IsChangeRegardingSubTask { get; set; }
     }
 
         public class GetTaskHistoryDto
@@ -30,12 +40,15 @@ namespace DemoProject_backend.Dtos
 
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-            public DateTime timestamp { get; set; }
+        public DateTime timestamp { get; set; }
         public string BusinessId { get; set; }
         public List<FieldChangeDto> changes { get; set; }
-            public TaskInfo taskdetails { get; set; }
-            public UserInfo userdetails { get; set; }
-        }
+        public TaskInfo taskdetails { get; set; }
+        public UserInfo userdetails { get; set; }
+
+        public string? ChangeType { get; set; }
+
+    }
 
         public class TaskInfo
         {

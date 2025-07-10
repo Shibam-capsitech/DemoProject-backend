@@ -400,21 +400,86 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SubTask"
+                "$ref": "#/components/schemas/AddSubTaskDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SubTask"
+                "$ref": "#/components/schemas/AddSubTaskDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SubTask"
+                "$ref": "#/components/schemas/AddSubTaskDto"
               }
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Task/change-subtask-status/{subtaskId}": {
+      "post": {
+        "tags": [
+          "Task"
+        ],
+        "parameters": [
+          {
+            "name": "subtaskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Task/delete-subtask/{subtaskId}": {
+      "post": {
+        "tags": [
+          "Task"
+        ],
+        "parameters": [
+          {
+            "name": "subtaskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "taskId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -543,30 +608,19 @@
   },
   "components": {
     "schemas": {
-      "SubTask": {
+      "AddSubTaskDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "nullable": true
-          },
           "title": {
             "type": "string",
             "nullable": true
           },
           "status": {
-            "$ref": "#/components/schemas/SubTaskStatus"
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
-      },
-      "SubTaskStatus": {
-        "enum": [
-          "Waiting",
-          "InProgress",
-          "Completed"
-        ],
-        "type": "string"
       },
       "TaskPriority": {
         "enum": [
