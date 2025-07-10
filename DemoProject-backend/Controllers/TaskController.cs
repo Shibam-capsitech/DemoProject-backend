@@ -208,6 +208,7 @@ namespace DemoProject_backend.Controllers
             {
                 Id = taskId,
                 Type = dto.type,
+                TId = task.TId,
                 BusinessName = task.BusinessName,
                 Title = dto.title,
                 StartDate = dto.startDate,
