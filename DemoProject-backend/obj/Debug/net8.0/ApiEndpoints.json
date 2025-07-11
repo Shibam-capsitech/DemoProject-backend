@@ -63,6 +63,22 @@
   },
   {
     "ContainingType": "DemoProject_backend.Controllers.BusinessController",
+    "Method": "FilterBusinesses",
+    "RelativePath": "api/Business/filter",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "filter",
+        "Type": "DemoProject_backend.Dtos.FilterReqDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.BusinessController",
     "Method": "GetAllBusinesses",
     "RelativePath": "api/Business/get-all-businesses",
     "HttpMethod": "GET",
@@ -274,6 +290,22 @@
   },
   {
     "ContainingType": "DemoProject_backend.Controllers.TaskController",
+    "Method": "FilterTasks",
+    "RelativePath": "api/Task/filter",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "filter",
+        "Type": "DemoProject_backend.Dtos.FilterReqDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.TaskController",
     "Method": "GetAllTasks",
     "RelativePath": "api/Task/get-all-task",
     "HttpMethod": "GET",
@@ -292,6 +324,22 @@
     "Parameters": [
       {
         "Name": "id",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.TaskController",
+    "Method": "GetTasksByBusinessId",
+    "RelativePath": "api/Task/get-tasks-by-business-id/{businessId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "businessId",
         "Type": "System.String",
         "IsRequired": true
       }

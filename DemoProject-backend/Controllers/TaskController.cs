@@ -223,11 +223,13 @@ namespace DemoProject_backend.Controllers
                 SubTask = task.SubTask,
             };
             var changes = new List<FieldChange>();
-
+            var description = $"Details updated :- <br/>";
             if (task.Title != dto.title)
+                description += $"<strong>Name</strong> : Updated from {task.Title} to {dto.title}<br/>";
                 changes.Add(new FieldChange { Field = "title", PreviousValue = task.Title, NewValue = dto.title });
 
             if (task.Description != dto.description)
+                description += $"Description updated from {task.Description} to {dto.description}<br/>";
                 changes.Add(new FieldChange { Field = "description", PreviousValue = task.Description, NewValue = dto.description });
 
             if (task.Priority != dto.priority)
@@ -257,7 +259,7 @@ namespace DemoProject_backend.Controllers
                     BusinessId= businessId,
                     UpdatedBy = userId,
                     TimeStamp = DateTime.UtcNow,
-                    Changes = changes,
+                    Changes = description,
                      ChangeType = "Update"
                 };
 
@@ -311,10 +313,7 @@ namespace DemoProject_backend.Controllers
         }
 
         [HttpPost("change-subtask-status/{subtaskId}")]
-        public async Task<IActionResult> UpdateSubtaskStaus(
-            string subtaskId,
-            [FromQuery] string taskId,
-            [FromQuery] string status)
+        public async Task<IActionResult> UpdateSubtaskStaus(string subtaskId, [FromQuery] string taskId,[FromQuery] string status)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
@@ -407,6 +406,31 @@ namespace DemoProject_backend.Controllers
             return Ok("Subtask deleted and history logged");
         }
 
+        [HttpGet("get-tasks-by-business-id/{businessId}")]
+        public async Task<IActionResult> GetTasksByBusinessId(string businessId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userId == null)
+            {
+                return Unauthorized("Unauthorized");
+            }
+            var tasks = await _taskService.GetTasksByBusinessId(businessId);
+            var isCompleted = true;
+            return Ok(new { tasks, isCompleted });
+        }
+
+        [HttpPost("filter")]
+        public async Task<IActionResult> FilterTasks([FromBody] FilterReqDto filter)
+        {
+            if (string.IsNullOrWhiteSpace(filter.Criteria) || string.IsNullOrWhiteSpace(filter.Value))
+            {
+                return BadRequest("Both 'criteria' and 'value' are required.");
+            }
+
+            var result = await _taskService.FilterTasksAsync(filter.Criteria, filter.Value);
+            return Ok(new { filteredData = result });
+        }
 
 
     }

@@ -117,7 +117,44 @@ namespace DemoProject_backend.Services
             await _business.FindOneAndReplaceAsync(b => b.Id == id, updatedBusiness);
         }
 
+        public async Task<Object> FilterBusinessesAsync(string criteria, string value)
+        {
+            //var filter = Builders<Business>.Filter.Eq(criteria, value);
+            //var result = await _business.Find(filter).ToListAsync();
+            //return result;
 
+            var pipeline = new[]
+            {
+            new BsonDocument("$match", new BsonDocument(criteria.ToString(), value )),
+            new BsonDocument("$lookup", new BsonDocument
+            {
+            { "from", "Users" },
+            { "localField", "UserId" },
+            { "foreignField", "_id" },
+            { "as", "userDetails" }
+            }),
+            new BsonDocument("$addFields", new BsonDocument
+            {
+            { "userDetails", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails", 0 }) }
+            }),
+            new BsonDocument("$addFields", new BsonDocument
+            {
+            { "username", "$userDetails.username" }
+            }),
+            new BsonDocument("$addFields", new BsonDocument
+            {
+            { "email", "$userDetails.email" }
+            }),
+            };
+            var docs = await _business.Aggregate<BsonDocument>(pipeline).ToListAsync();
+
+            var businesses = docs.Select(doc =>
+                BsonSerializer.Deserialize<GetFilteredBusinessDto>(doc)
+            ).ToList();
+
+            return businesses;
+
+        }
 
     }
 }

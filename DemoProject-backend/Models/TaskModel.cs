@@ -1,4 +1,5 @@
-﻿using DemoProject_backend.Enums;
+﻿using DemoProject_backend.Dtos;
+using DemoProject_backend.Enums;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
@@ -56,6 +57,8 @@ namespace DemoProject_backend.Models
 
         [BsonElement("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public IdNameModel Business { get; set; }
     }
 
     public class SubTask
@@ -68,7 +71,7 @@ namespace DemoProject_backend.Models
         public string Title { get; set; }
 
         [BsonElement("Status")]
-        public string Status { get; set; }
+        public string Status { get; set; } //do this as enum
     }
 }
 

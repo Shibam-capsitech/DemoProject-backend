@@ -24,7 +24,7 @@ namespace DemoProject_backend.Models
         public DateTime TimeStamp { get; set; }
 
         [BsonElement("changes")]
-        public List<FieldChange> Changes { get; set; }
+        public String Changes { get; set; }
 
         [BsonElement("ChangeType")]
         public string? ChangeType { get; set; }

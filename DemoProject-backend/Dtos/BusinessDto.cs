@@ -48,5 +48,27 @@ public class GetAllBusinessesDto
         public string postcode { get; set; }
     }
 
+    public class GetFilteredBusinessDto
+    {
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
+        public string bId { get; set; }
+        public string type { get; set; }
+        public string name { get; set; }
+        public string building { get; set; }
+        public string city { get; set; }
+        public string country { get; set; }
+        public string state { get; set; }
+        public string postcode { get; set; }
 
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string UserId { get; set; }
+
+        public DateTime createdAt { get; set; }
+        public User userDetails { get; set; }
+
+        public string username { get; set; }
+        public string email { get; set; }
+    }
 }

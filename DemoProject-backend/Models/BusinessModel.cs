@@ -1,4 +1,5 @@
-﻿using DemoProject_backend.Enums;
+﻿using DemoProject_backend.Dtos;
+using DemoProject_backend.Enums;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System;
@@ -17,30 +18,32 @@ namespace DemoProject_backend.Models
 
         [BsonElement("type")]
         public string Type { get; set; }
-
-        [BsonElement("name")]
+        /// <summary>
+        /// Business Name
+        /// </summary>
         public string Name { get; set; }
+        [BsonIgnoreIfDefault, BsonIgnoreIfNull]
+        public Address? Address { get; set; }
 
-        [BsonElement("building")]
-        public string Building { get; set; }
-
-        [BsonElement("city")]
-        public string City { get; set; }
-
-        [BsonElement("country")]
-        public string Country { get; set; }
-
-        [BsonElement("state")]
-        public string State { get; set; }
-
-        [BsonElement("postcode")]
-        public string Postcode { get; set; }
-
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; }
-
-        [BsonElement("createdAt")]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public CreatedBy CreatedBy { get; set; }
     }
+
+        public class Address
+        {
+            [BsonIgnoreIfDefault, BsonIgnoreIfNull]
+            public string Building { get; set; }
+
+            [BsonElement("city")]
+            public string City { get; set; }
+
+            [BsonElement("country")]
+            public string Country { get; set; }
+
+            [BsonElement("state")]
+            public string State { get; set; }
+
+            [BsonElement("postcode")]
+            public string Postcode { get; set; }
+        }
 }
 

@@ -155,5 +155,17 @@ namespace DemoProject_backend.Controllers
             return Ok("Business updated succesfully");
         }
 
+        [HttpPost("filter")]
+        public async Task<IActionResult> FilterBusinesses([FromBody] FilterReqDto filter)
+        {
+            if (string.IsNullOrWhiteSpace(filter.Criteria) || string.IsNullOrWhiteSpace(filter.Value))
+            {
+                return BadRequest("Both 'criteria' and 'value' are required.");
+            }
+
+            var result = await _businessService.FilterBusinessesAsync(filter.Criteria, filter.Value);
+            return Ok(new { filteredData = result });
+        }
+
     }
 }
