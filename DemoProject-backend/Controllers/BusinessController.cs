@@ -47,18 +47,25 @@ namespace DemoProject_backend.Controllers
             }
 
             string newCustomId = $"CID-{nextNumber.ToString("D3")}";
-
+            var userName = User.FindFirst("username")?.Value;
             var business = new Business
             {
                 bId = newCustomId,
-                Type = dto.type,
-                Name = dto.name,
-                Building = dto.building,
-                City = dto.city,
-                State = dto.state,
-                Country = dto.country,
-                Postcode = dto.postcode,
-                UserId = userId
+                type = dto.type,
+                name = dto.name,
+                address = new AddressModel
+                {
+                    city = dto.city,
+                    country = dto.country,
+                    state = dto.state,
+                    building = dto.building,
+                    postcode = dto.postcode
+                },
+                createdBy = new CreatedByModel
+                {
+                    Id = userId,
+                    Name = userName
+                }
             };
 
             await _businessService.CreateBusiness(business);
@@ -80,7 +87,7 @@ namespace DemoProject_backend.Controllers
 
             if(userRole == "Admin")
             {
-                var businesses = await _businessService.GetAllBusinessesForAmin();
+                var businesses = await _businessService.GetAllBusinessesForAdmin();
                 if (businesses == null)
                 {
                     return NotFound("No businesses found");
@@ -142,14 +149,17 @@ namespace DemoProject_backend.Controllers
             GetAllBusinessesDto business = await _businessService.GetBusinessById(id);
             var updatedBusiness = new Business
             {
-                bId = business.bId,
-                Type = dto.type,
-                Name= dto.name,
-                City = dto.city,
-                Country = dto.country,
-                State= dto.state,
-                Building = dto.building,
-                Postcode = dto.postcode
+                bId = business.bid,
+                type = dto.type,
+                name = dto.name,
+                address = new AddressModel
+                {
+                    city = dto.city,
+                    country = dto.country,
+                    state = dto.state,
+                    building = dto.building,
+                    postcode = dto.postcode
+                }
             };
             await _businessService.UpdateBusiness(updatedBusiness, id);
             return Ok("Business updated succesfully");

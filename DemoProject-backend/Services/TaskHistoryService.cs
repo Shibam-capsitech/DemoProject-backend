@@ -22,53 +22,80 @@ namespace DemoProject_backend.Services
         {
             await _taskHistory.InsertOneAsync(taskHistory);
         }
-        public async Task<Object> GetTaskHistoryById(string id)
+        public async Task<object> GetTaskHistoryById(string id)
         {
             var objectId = new ObjectId(id);
+
             var pipeline = new BsonDocument[]
             {
-                  new BsonDocument("$match", new BsonDocument("TaskId", objectId)),
-                new BsonDocument("$lookup", new BsonDocument{
-                     { "from", "Tasks" },
-                     { "localField", "TaskId" },
-                     { "foreignField", "_id" },
-                     { "as", "taskdetails" }
-                }),
-                new BsonDocument("$addFields", new BsonDocument
-                {
-                     { "taskdetails", new BsonDocument("$arrayElemAt", new BsonArray { "$taskdetails", 0 }) }
-                }),
-                new BsonDocument("$lookup", new BsonDocument{
-                     { "from", "Users" },
-                     { "localField", "UpdatedBy" },
-                     { "foreignField", "_id" },
-                     { "as", "userdetails" }
-                }),
-                new BsonDocument("$addFields", new BsonDocument
-                {
-                     { "userdetails", new BsonDocument("$arrayElemAt", new BsonArray { "$userdetails", 0 }) }
-                }),
-                    new BsonDocument("$project", new BsonDocument
-                    {
-                    { "_id", 1 },
-                    { "timestamp", 1 },
-                    { "changes", 1 },
-                    { "taskdetails.title", 1 },
-                    { "taskdetails.description", 1 },
-                    { "taskdetails.type", 1 },
-                    { "userdetails.name", 1 },
-                    { "userdetails.email", 1 },
-                    { "userdetails.role", 1 }
-                     })
+                new BsonDocument("$match", new BsonDocument("targetedtask._id", objectId)),
+
+                //new BsonDocument("$lookup", new BsonDocument
+                //{
+                //    { "from", "Tasks" },
+                //    { "localField", "targetedtask._id" },
+                //    { "foreignField", "_id" },
+                //    { "as", "task" }
+                //}),
+                //new BsonDocument("$addFields", new BsonDocument
+                //{
+                //    { "task", new BsonDocument("$arrayElemAt", new BsonArray { "$task", 0 }) }
+                //}),
+
+                //new BsonDocument("$lookup", new BsonDocument
+                //{
+                //    { "from", "Businesses" },
+                //    { "localField", "targetedbusiness.id" },
+                //    { "foreignField", "_id" },
+                //    { "as", "business" }
+                //}),
+                //new BsonDocument("$addFields", new BsonDocument
+                //{
+                //    { "business", new BsonDocument("$arrayElemAt", new BsonArray { "$business", 0 }) }
+                //}),
+
+                //new BsonDocument("$lookup", new BsonDocument
+                //{
+                //    { "from", "Users" },
+                //    { "localField", "CreatedBy.UserId" },
+                //    { "foreignField", "_id" },
+                //    { "as", "creator" }
+                //}),
+                //new BsonDocument("$addFields", new BsonDocument
+                //{
+                //    { "creator", new BsonDocument("$arrayElemAt", new BsonArray { "$creator", 0 }) }
+                //}),
+
+                //new BsonDocument("$project", new BsonDocument
+                //{
+                //    { "_id", 1 },
+                //    { "Description", 1 },
+                //    { "ChangeType", 1 },
+                //    { "Target", new BsonDocument {
+                //        { "Id", "$targetedtask.id" },
+                //        { "Name", "$targetedtask.name" }
+                //    }},
+                //    { "Business", new BsonDocument {
+                //        { "Id", "$targetedbusiness.id" },
+                //        { "Name", "$targetedbusiness.name" }
+                //    }},
+                //    { "CreatedBy", new BsonDocument {
+                //        { "UserId", "$CreatedBy.UserId" },
+                //        { "UserName", "$creator.name" },
+                //        { "UserRole", "$creator.role" }
+                //    }}
+                //})
             };
+
             var docs = await _taskHistory.Aggregate<BsonDocument>(pipeline).ToListAsync();
 
-            var taskHistories = docs.Select(doc =>
+            var result = docs.Select(doc =>
                 BsonSerializer.Deserialize<GetTaskHistoryDto>(doc)
             ).ToList();
 
-            return taskHistories;
+            return result;
         }
+
 
         public async Task<Object> GetTaskHistoryByBusinessId(string id)
         {

@@ -18,7 +18,7 @@ namespace DemoProject_backend.Services
 
         public async Task<User> GetUSerByEmail(string email)
         {
-            return await _user.Find(u=> u.Email == email).FirstOrDefaultAsync();
+            return await _user.Find(u=> u.email == email).FirstOrDefaultAsync();
         }
 
         //because the model Task and thraed task is conflicting
@@ -30,6 +30,11 @@ namespace DemoProject_backend.Services
         public async Task<List<User>> GetAllUsers()
         {
             return await _user.Find(u => true).ToListAsync();
+        }
+
+        public async Task<User> GetUSerById(string id)
+        {
+            return await _user.Find(u => u.Id == id).FirstOrDefaultAsync();
         }
     }
     }

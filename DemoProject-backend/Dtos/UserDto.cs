@@ -1,4 +1,5 @@
 ﻿using DemoProject_backend.Enums;
+using DemoProject_backend.Models;
 
 namespace DemoProject_backend.Dtos
 {
@@ -9,10 +10,7 @@ namespace DemoProject_backend.Dtos
         public required string Password { get; set; }
         public required string Name { get; set; }
         public required UserRole Role { get; set; }
-        public required string? City { get; set; }
-        public required string? Country { get; set; }
-        public required string? State { get; set; }
-        public required string? Postcode { get; set; }
+        public required AddressModel Address { get; set; }
     }
 
     public class UserLoginDto

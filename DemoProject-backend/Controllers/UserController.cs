@@ -29,15 +29,18 @@ namespace DemoProject_backend.Controllers
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             var newUser = new User
             {
-                Name = dto.Name,
-                Username = dto.Username,
-                Email = dto.Email,
-                Password = hashedPassword,
-                City = dto.City,
-                Country = dto.Country,
-                Role = dto.Role,
-                State = dto.State,
-                Postcode = dto.Postcode,
+                name = dto.Name,
+                username = dto.Username,
+                email = dto.Email,
+                password = hashedPassword,
+                address = new AddressModel
+                {
+                    city = dto.Address.city,
+                    country = dto.Address.country,
+                    state = dto.Address.state,
+                    postcode = dto.Address.postcode,
+                },
+                role = dto.Role,
             };
             await _userService.CreateUser(newUser);
             return Ok("User Created Successfully");
@@ -50,7 +53,7 @@ namespace DemoProject_backend.Controllers
             var user = await _userService.GetUSerByEmail(dto.Email);
             if (user == null)
                 return Unauthorized("No such user exists");
-            if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.Password))
+            if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.password))
             {
                 return Unauthorized("Invalid cred");
             }

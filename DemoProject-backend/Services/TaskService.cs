@@ -88,10 +88,6 @@ namespace DemoProject_backend.Services
             {
             { "businessDetails", new BsonDocument("$arrayElemAt", new BsonArray { "$businessDetails", 0 }) }
             }),
-            new BsonDocument("$project", new BsonDocument
-            {
-            { "" }
-            }),
              
             };
             var docs = await _task.Aggregate<BsonDocument>(pipeline).ToListAsync();
@@ -109,7 +105,7 @@ namespace DemoProject_backend.Services
 
         public async Task<List<TaskModel>> GetTasksByBusinessId(string businessId)
         {
-            return await _task.Find(b => b.BusinessId == businessId).ToListAsync();
+            return await _task.Find(b => b.businessDetails.Id == businessId).ToListAsync();
         }
         public async Task UpdateTask(string taskId, TaskModel updatedTask)
         {
@@ -119,7 +115,7 @@ namespace DemoProject_backend.Services
         {
             return await _task
                 .Find(FilterDefinition<TaskModel>.Empty)
-                .SortByDescending(b => b.TId)
+                .SortByDescending(b => b.tid)
                 .Limit(1)
                 .FirstOrDefaultAsync();
         }
@@ -128,14 +124,14 @@ namespace DemoProject_backend.Services
             var subtask = new SubTask
             {
                 Id= ObjectId.GenerateNewId().ToString(),
-                Title = subtaskDto.Title,
-                Status = subtaskDto.Status
+                title = subtaskDto.title,
+                status = subtaskDto.status
 
             };
 
             //Note:Builders<T>.Update: This is part of MongoDB's C# driver. It helps you build update queries for a collection of type T. In your case, T is TaskModel.
             //.Push(...): This generates a $push MongoDB update operation. It adds an element to an array field(here, SubTask list).
-            var update = Builders<TaskModel>.Update.Push(t => t.SubTask, subtask);
+            var update = Builders<TaskModel>.Update.Push(t => t.subtask, subtask);
 
 
             var result = await _task.UpdateOneAsync(
@@ -157,11 +153,11 @@ namespace DemoProject_backend.Services
             
             var subtaskObjectId = new ObjectId(subtaskId);
             var filter = Builders<TaskModel>.Filter.ElemMatch(
-                t => t.SubTask, s => s.Id == subtaskObjectId.ToString()
+                t => t.subtask, s => s.Id == subtaskObjectId.ToString()
             );
             Console.WriteLine(filter);
             var update = Builders<TaskModel>.Update.Set(
-                "subtask.$.Status", newStatus
+                "subtask.$.status", newStatus
             );
             Console.WriteLine(update);
             var result = await _task.UpdateOneAsync(filter, update);
@@ -177,11 +173,11 @@ namespace DemoProject_backend.Services
             var subtaskObjectId = ObjectId.Parse(subtaskId);
 
             var filter = Builders<TaskModel>.Filter.ElemMatch(
-                t => t.SubTask, s => s.Id == subtaskObjectId.ToString()
+                t => t.subtask, s => s.Id == subtaskObjectId.ToString()
             );
 
             var update = Builders<TaskModel>.Update.PullFilter(
-                t => t.SubTask, s => s.Id == subtaskObjectId.ToString()
+                t => t.subtask, s => s.Id == subtaskObjectId.ToString()
             );
 
             await _task.UpdateOneAsync(filter, update);

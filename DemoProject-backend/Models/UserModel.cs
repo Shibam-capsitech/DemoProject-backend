@@ -11,40 +11,16 @@ namespace DemoProject_backend.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
+        public string name { get; set; }
+        public string username { get; set; }
+        public string email { get; set; }
+        public string password { get; set; }
 
-        [BsonElement("name")]
-        public string Name { get; set; }
-
-        [BsonElement("username")]
-        public string Username { get; set; }
-
-        [BsonElement("email")]
-        public string Email { get; set; }
-
-        [BsonElement("password")]
-        public string Password { get; set; }
-
-        [BsonElement("role")]
         [BsonRepresentation(BsonType.String)]
-        public UserRole Role { get; set; }
+        public UserRole role { get; set; }
 
-        [BsonElement("country")]
-        public string Country { get; set; }
-
-        [BsonElement("state")]
-        public string State { get; set; }
-
-        [BsonElement("city")]
-        public string City { get; set; }
-
-        [BsonElement("postcode")]
-        public string Postcode { get; set; }
-
-        [BsonRepresentation(BsonType.ObjectId)]
-        public List<string> BusinessId { get; set; }
-
-        [BsonRepresentation(BsonType.ObjectId)]
-        public List<string> TaskId { get; set; }
+        [BsonIgnoreIfDefault, BsonIgnoreIfNull]
+        public AddressModel? address { get; set; }
 
         [BsonElement("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

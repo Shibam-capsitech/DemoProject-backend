@@ -23,22 +23,29 @@ namespace DemoProject_backend.Services
             await _business.InsertOneAsync(business);
         }
 
-        public async Task<Object> GetAllBusinessesForAmin()
+        public async Task<object> GetAllBusinessesForAdmin()
         {
             var pipeline = new[]
             {
-            new BsonDocument("$lookup", new BsonDocument
-            {
-            { "from", "Users" },
-            { "localField", "UserId" },
-            { "foreignField", "_id" },
-            { "as", "userDetails" }
-            }),
-            new BsonDocument("$addFields", new BsonDocument
-            {
-            { "userDetails", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails", 0 }) }
-            })
+                new BsonDocument("$lookup", new BsonDocument
+                {
+                    { "from", "Users" },
+                    { "localField", "createdby._id" },
+                    { "foreignField", "_id" },
+                    { "as", "userDetails" }
+                }),
+                new BsonDocument("$addFields", new BsonDocument
+                {
+                    { "createdby.Name", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails.username", 0 }) },
+                     { "createdby.Email", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails.email", 0 }) }
+
+                }),
+                new BsonDocument("$project", new BsonDocument
+                {
+                    { "userDetails", 0 } 
+                })
             };
+
             var docs = await _business.Aggregate<BsonDocument>(pipeline).ToListAsync();
 
             var businesses = docs.Select(doc =>
@@ -47,23 +54,30 @@ namespace DemoProject_backend.Services
 
             return businesses;
         }
+
         public async Task<Object> GetAllBusinessesAddedByCurrentUser(string userId)
         {
             var objectId = new ObjectId(userId);
             var pipeline = new[]
             {
-            new BsonDocument("$match", new BsonDocument("UserId", objectId) ),
+            new BsonDocument("$match", new BsonDocument("createdby._id", objectId) ),
             new BsonDocument("$lookup", new BsonDocument
-            {
-            { "from", "Users" },
-            { "localField", "UserId" },
-            { "foreignField", "_id" },
-            { "as", "userDetails" }
-            }),
+                {
+                    { "from", "Users" },
+                    { "localField", "createdby._id" },
+                    { "foreignField", "_id" },
+                    { "as", "userDetails" }
+                }),
             new BsonDocument("$addFields", new BsonDocument
-            {
-            { "userDetails", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails", 0 }) }
-            })
+                {
+                    { "createdby.Name", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails.username", 0 }) },
+                    { "createdby.Email", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails.email", 0 }) }
+
+                }),
+            new BsonDocument("$project", new BsonDocument
+                {
+                    { "userDetails", 0 }
+                })
             };
             var docs = await _business.Aggregate<BsonDocument>(pipeline).ToListAsync();
 
@@ -97,13 +111,20 @@ namespace DemoProject_backend.Services
                 new BsonDocument("$lookup",new BsonDocument
                 {
                  { "from", "Users" },
-                 { "localField", "UserId" },
+                 { "localField", "createdby._id" },
                  { "foreignField", "_id" },
                  { "as", "userDetails" }
                 }),
                 new BsonDocument("$addFields", new BsonDocument
                 {
-                { "userDetails", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails", 0 }) }
+                    { "createdby.Name", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails.username", 0 }) },
+                    { "createdby.Email", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails.email", 0 }) },
+                    { "createdby.Address", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails.address", 0 }) }
+
+                }),
+                new BsonDocument("$project", new BsonDocument
+                {
+                    { "userDetails", 0 }
                 })
             };
             var doc = await _business.Aggregate<BsonDocument>(pipeline).FirstOrDefaultAsync();

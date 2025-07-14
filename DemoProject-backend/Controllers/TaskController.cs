@@ -1,4 +1,5 @@
 ﻿using DemoProject_backend.Dtos;
+using DemoProject_backend.Enums;
 using DemoProject_backend.Models;
 using DemoProject_backend.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -57,59 +58,92 @@ namespace DemoProject_backend.Controllers
             var lastTask = await _taskService.GetLastTask();
             int nextNumber = 1;
 
-            if (lastTask != null && !string.IsNullOrEmpty(lastTask.TId))
+            if (lastTask != null && !string.IsNullOrEmpty(lastTask.tid))
             {
-                string lastNumberPart = lastTask.TId.Replace("TID-", "");
+                string lastNumberPart = lastTask.tid.Replace("TID-", "");
                 if (int.TryParse(lastNumberPart, out int parsedNumber))
                 {
                     nextNumber = parsedNumber + 1;
                 }
             }
             string newCustomId = $"TID-{nextNumber.ToString("D3")}";
+            var userName = User.FindFirst("username")?.Value;
+            Console.Write(".................");
+            Console.WriteLine(dto.assignee.Id);
+            Console.WriteLine(userName);
+            User assignee = await _userService.GetUSerById(dto.assignee.Id);
+            Console.WriteLine("Assignee ID: " + assignee.Id);  
+            Console.WriteLine("Assignee Name: " + assignee.username);  
+
             var task = new Models.Task
             {
-                TId= newCustomId,
-                Type = dto.type,
-                Title = dto.title,
-                BusinessName = dto.businessName,
-                StartDate = dto.startDate,
-                DueDate = dto.dueDate,
-                Deadline = dto.deadline,
-                Description = dto.description,
-                Assignee = dto.assignee,
-                Attachment = fileResult.SecureUrl.ToString(),
-                UserId = userId,
-                BusinessId = dto.businessId,
-                SubTask = new List<SubTask>(),
+                tid= newCustomId,
+                type = dto.type,
+                title = dto.title,
+                startdate = dto.startdate,
+                duedate = dto.duedate,
+                deadline = dto.deadline,
+                description = dto.description,
+                assignee = new IdNameModel
+                {
+                    Id = assignee.Id,
+                    Name = assignee.username,
+                },
+                attachment = fileResult.SecureUrl.ToString(),
+                businessDetails = new IdNameModel
+                {
+                    Id = dto.businessDetails.Id,
+                    Name = dto.businessDetails.Name,
+                },
+                createdBy = new CreatedByModel
+                {
+                    Id = userId,
+                    Name = userName,
+                },
+                subtask = new List<SubTask>(),
             };
             await _taskService.CreateTask(task);
 
-            var changes = new List<FieldChange>
-                {
-                 new FieldChange
-                 {
-                    Field = "Task Created",
-                    PreviousValue = null,
-                    NewValue = $"New task created: {dto.title}",
-                    IsChangeRegardingSubTask = false,
-                    IsChangeRegardingTask= true
-                  }
-                  };
+            //var changes = new List<FieldChange>
+            //    {
+            //     new FieldChange
+            //     {
+            //        Field = "Task Created",
+            //        PreviousValue = null,
+            //        NewValue = $"New task created: {dto.title}",
+            //        IsChangeRegardingSubTask = false,
+            //        IsChangeRegardingTask= true
+            //      }
+            //      };
+            
             var taskHistory = new TaskHistoryModel
             {
-                TaskId = task.Id,
-                BusinessId = dto.businessId,
-                UpdatedBy = userId,
-                TimeStamp = DateTime.UtcNow,
-                Changes = changes,
-                ChangeType = "Create"
+                TargetTask = new IdNameModel
+                {
+                    Id = task.Id, 
+                    Name = task.title,
+                },
+                TargetBusiness = new IdNameModel
+                {
+                  Id = task.businessDetails.Id,
+                  Name = task.businessDetails.Name,
+                },
+                CreatedBy = new CreatedByModel
+                {
+                    Id = userId,
+                    Name = userName
+                },
+                ChangeType = ChangeTypeEnum.Add,
+                Description = $"<strong>New task created</strong> — <span>Title: {dto.title}</span>"
             };
+
             await _taskHistoryService.CreateTaskHistory(taskHistory);
+
 
             var subtask = new SubTask
             {
-                Title ="Gather information from client",
-                Status= "Waiting",
+                title = "Gather information from client",
+                status = "Waiting",
             };
             await _taskService.CreateSubTask(subtask, task.Id);
 
@@ -201,70 +235,95 @@ namespace DemoProject_backend.Controllers
             if (task == null)
                 return NotFound("Task not found");
 
-            if (userRole == "Manager" && task.UserId != userId)
+            if (userRole == "Manager" && task.createdBy.Id != userId)
                 return Forbid("Managers can only edit their own tasks.");
-
+            User task_assignee = await _userService.GetUSerById(userId);
             var updatedTask = new Models.Task
             {
                 Id = taskId,
-                Type = dto.type,
-                TId = task.TId,
-                BusinessName = task.BusinessName,
-                Title = dto.title,
-                StartDate = dto.startDate,
-                DueDate = dto.dueDate,
-                Deadline = dto.deadline,
-                Priority = dto.priority,
-                Description = dto.description,
-                Assignee = dto.assignee,
-                BusinessId = task.BusinessId,
-                UserId = task.UserId,
-                Attachment = task.Attachment,
-                SubTask = task.SubTask,
+                type = dto.type,
+                tid = task.tid,
+                title = dto.title,
+                startdate = dto.startdate,
+                duedate = dto.duedate,
+                deadline = dto.deadline,
+                priority = dto.priority,
+                description = dto.description,
+                assignee = new IdNameModel
+                {
+                    Id = task_assignee.Id,
+                    Name = task_assignee.name,
+                },
+                attachment = task.attachment,
+                subtask = task.subtask,
+                businessDetails = new IdNameModel
+                {
+                    Id = businessId,
+                    Name = task.businessDetails.Id
+                },
+                createdBy = new CreatedByModel
+                {
+                    Name= task.createdBy.Name,
+                    Id = task.createdBy.Id
+                }
             };
-            var changes = new List<FieldChange>();
-            var description = $"Details updated :- <br/>";
-            if (task.Title != dto.title)
-                description += $"<strong>Name</strong> : Updated from {task.Title} to {dto.title}<br/>";
-                changes.Add(new FieldChange { Field = "title", PreviousValue = task.Title, NewValue = dto.title });
 
-            if (task.Description != dto.description)
-                description += $"Description updated from {task.Description} to {dto.description}<br/>";
-                changes.Add(new FieldChange { Field = "description", PreviousValue = task.Description, NewValue = dto.description });
+            var description = $"<strong>Task updated</strong><br/><ul style='padding-left: 16px;'>";
 
-            if (task.Priority != dto.priority)
-                changes.Add(new FieldChange { Field = "priority", PreviousValue = task.Priority.ToString(), NewValue = dto.priority.ToString() });
+            if (task.title != dto.title)
+                description += $"<li><strong>Title:</strong> <em>{task.title}</em> → <em>{dto.title}</em></li>";
 
-            if (task.Type != dto.type)
-                changes.Add(new FieldChange { Field = "type", PreviousValue = task.Type, NewValue = dto.type });
+            if (task.description != dto.description)
+                description += $"<li><strong>Description:</strong> <em>{task.description}</em> → <em>{dto.description}</em></li>";
 
-            if (task.Assignee != dto.assignee)
-                changes.Add(new FieldChange { Field = "assignee", PreviousValue = task.Assignee, NewValue = dto.assignee });
+            if (task.priority != dto.priority)
+                description += $"<li><strong>Priority:</strong> <em>{task.priority}</em> → <em>{dto.priority}</em></li>";
 
-            if (task.StartDate != dto.startDate)
-                changes.Add(new FieldChange { Field = "startDate", PreviousValue = task.StartDate.ToString("s"), NewValue = dto.startDate.ToString("s") });
+            if (task.type != dto.type)
+                description += $"<li><strong>Type:</strong> <em>{task.type}</em> → <em>{dto.type}</em></li>";
 
-            if (task.DueDate != dto.dueDate)
-                changes.Add(new FieldChange { Field = "dueDate", PreviousValue = task.DueDate.ToString("s"), NewValue = dto.dueDate.ToString("s") });
+            if (task.assignee.Id != dto.assignee.Id)
+                description += $"<li><strong>Assignee:</strong> <em>{task.assignee.Name}</em> → <em>{dto.assignee.Name}</em></li>";
 
-            if (task.Deadline != dto.deadline)
-                changes.Add(new FieldChange { Field = "deadline", PreviousValue = task.Deadline.ToString("s"), NewValue = dto.deadline.ToString("s") });
+            if (task.startdate != dto.startdate)
+                description += $"<li><strong>Start Date:</strong> <em>{task.startdate:yyyy-MM-dd}</em> → <em>{dto.startdate:yyyy-MM-dd}</em></li>";
+
+            if (task.duedate != dto.duedate)
+                description += $"<li><strong>Due Date:</strong> <em>{task.duedate:yyyy-MM-dd}</em> → <em>{dto.duedate:yyyy-MM-dd}</em></li>";
+
+            if (task.deadline != dto.deadline)
+                description += $"<li><strong>Deadline:</strong> <em>{task.deadline:yyyy-MM-dd}</em> → <em>{dto.deadline:yyyy-MM-dd}</em></li>";
+
+            description += "</ul>";
+
 
             await _taskService.UpdateTask(taskId, updatedTask);
-            if (changes.Count > 0)
-            {
-                var taskHistory = new TaskHistoryModel
-                {
-                    TaskId = taskId,
-                    BusinessId= businessId,
-                    UpdatedBy = userId,
-                    TimeStamp = DateTime.UtcNow,
-                    Changes = description,
-                     ChangeType = "Update"
-                };
 
-                await _taskHistoryService.CreateTaskHistory(taskHistory);
-            }
+            var userName = User.FindFirst("username")?.Value;
+            Console.WriteLine(userName);
+            var taskHistory = new TaskHistoryModel
+            {
+                TargetTask = new IdNameModel
+                {
+                    Id = taskId,
+                    Name = dto.title
+                },
+                TargetBusiness = new IdNameModel
+                {
+                    Id = task.businessDetails.Id,
+                    Name = task.businessDetails.Name
+                },
+                CreatedBy = new CreatedByModel
+                {
+                    Id = userId,
+                    Name = userName
+                },
+                ChangeType = ChangeTypeEnum.Edit,
+                Description = description,
+
+            };
+
+            await _taskHistoryService.CreateTaskHistory(taskHistory);
 
             return Ok("Task updated successfully");
         }
@@ -281,32 +340,36 @@ namespace DemoProject_backend.Controllers
 
             var subtask = new SubTask
             {
-                Title = dto.title,
-                Status = dto.status
+                title = dto.title,
+                status = dto.status
             };
             await _taskService.CreateSubTask(subtask, taskId);
 
             Models.Task task = await _taskService.GetTaskByTaskId(taskId);
-            var changes = new List<FieldChange>
-                {
-                 new FieldChange
-                 {
-                    Field = "SubTask Created",
-                     PreviousValue = null,
-                      NewValue = $"New sub task created: {dto.title}",
-                      SubTaskId = subtask.Id,
-                      IsChangeRegardingSubTask = true,
-                      IsChangeRegardingTask= false
-                  }
-                  };
+
+            var description = $"<strong>New subtask added:</strong> <span>{dto.title}</span>";
+
+            var userName = User.FindFirst("username")?.Value;
             var taskHistory = new TaskHistoryModel
             {
-                TaskId = taskId,
-                BusinessId = task.BusinessId,
-                UpdatedBy = userId,
-                TimeStamp = DateTime.UtcNow,
-                Changes = changes,
-                ChangeType = "Create"
+                TargetTask = new IdNameModel
+                {
+                    Id = taskId,
+                    Name = task.title
+                },
+                TargetBusiness = new IdNameModel
+                {
+                    Id = task.businessDetails.Id,
+                    Name = task.businessDetails.Name
+                },
+                CreatedBy = new CreatedByModel
+                {
+                    Id = userId,
+                    Name = userName
+                },
+                ChangeType = ChangeTypeEnum.Add,
+                Description = description,
+
             };
             await _taskHistoryService.CreateTaskHistory(taskHistory);
             return Ok("Subtask created !");
@@ -323,36 +386,35 @@ namespace DemoProject_backend.Controllers
             Models.Task task = await _taskService.GetTaskByTaskId(taskId);
             if (task == null)
                 return NotFound("Task not found");
-            var subtask = task.SubTask.FirstOrDefault(s => s.Id == subtaskId);
+            var subtask = task.subtask.FirstOrDefault(s => s.Id == subtaskId);
             if (subtask == null)
                 return NotFound("Subtask not found");
 
-            var previousStatus = subtask.Status;
+            var previousStatus = subtask.status;
 
   
             await _taskService.UpdateSubtaskStaus(subtaskId, status);
-
-            var changes = new List<FieldChange>
-            {
-             new FieldChange
-             {
-            Field = "Subtask Status",
-            PreviousValue = previousStatus,
-            NewValue = status,
-            SubTaskId = subtaskId,
-            IsChangeRegardingSubTask = true,
-            IsChangeRegardingTask = false
-             }
-             };
-
+            var description = $"<strong>Status of subtask</strong> \"{subtask.title}\" changed from <em>{previousStatus}</em> to <em>{status}</em>";
+            var userName = User.FindFirst("username")?.Value;
             var taskHistory = new TaskHistoryModel
             {
-                TaskId = taskId,
-                BusinessId = task.BusinessId,
-                UpdatedBy = userId,
-                TimeStamp = DateTime.UtcNow,
-                Changes = changes,
-                 ChangeType = "Update"
+                TargetTask = new IdNameModel
+                {
+                    Id = taskId,
+                    Name = task.title
+                },
+                TargetBusiness = new IdNameModel
+                {
+                    Id = task.businessDetails.Id,
+                    Name = task.businessDetails.Name
+                },
+                CreatedBy = new CreatedByModel
+                {
+                    Id = userId,
+                    Name = userName
+                },
+                ChangeType = ChangeTypeEnum.Edit,
+                Description = description,
             };
 
             await _taskHistoryService.CreateTaskHistory(taskHistory);
@@ -371,34 +433,34 @@ namespace DemoProject_backend.Controllers
             if (task == null)
                 return NotFound("Task not found");
 
-            var subtask = task.SubTask.FirstOrDefault(s => s.Id == subtaskId);
+            var subtask = task.subtask.FirstOrDefault(s => s.Id == subtaskId);
             if (subtask == null)
                 return NotFound("Subtask not found");
 
-            var deletedSubtaskTitle = subtask.Title;
+            var deletedSubtaskTitle = subtask.title;
 
             await _taskService.DeleteSubTask(subtaskId);
-            var changes = new List<FieldChange>
-            {
-              new FieldChange
-               {
-                Field = "Subtask Deleted",
-                PreviousValue = $"Subtask: {deletedSubtaskTitle}",
-                NewValue = "Deleted",
-                SubTaskId = subtaskId,
-                IsChangeRegardingSubTask = true,
-                IsChangeRegardingTask = false,
-                }
-               };
-
+            var description = $"<strong>Subtask deleted:</strong> \"{deletedSubtaskTitle}\"";
+            var userName = User.FindFirst("username")?.Value;
             var taskHistory = new TaskHistoryModel
             {
-                TaskId = taskId,
-                BusinessId = task.BusinessId,
-                UpdatedBy = userId,
-                TimeStamp = DateTime.UtcNow,
-                Changes = changes,
-                ChangeType = "Delete"
+                TargetTask = new IdNameModel
+                {
+                    Id = taskId,
+                    Name = task.title
+                },
+                TargetBusiness = new IdNameModel
+                {
+                    Id = task.businessDetails.Id,
+                    Name = task.businessDetails.Name
+                },
+                CreatedBy = new CreatedByModel
+                {
+                    Id = userId,
+                    Name = userName
+                },
+                ChangeType = ChangeTypeEnum.Delete,
+                Description = description,
             };
 
             await _taskHistoryService.CreateTaskHistory(taskHistory);

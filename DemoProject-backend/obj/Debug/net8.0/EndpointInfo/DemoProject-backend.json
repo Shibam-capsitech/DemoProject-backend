@@ -250,17 +250,14 @@
                   "type": {
                     "type": "string"
                   },
-                  "businessName": {
-                    "type": "string"
-                  },
                   "title": {
                     "type": "string"
                   },
-                  "startDate": {
+                  "startdate": {
                     "type": "string",
                     "format": "date-time"
                   },
-                  "dueDate": {
+                  "duedate": {
                     "type": "string",
                     "format": "date-time"
                   },
@@ -274,10 +271,16 @@
                   "description": {
                     "type": "string"
                   },
-                  "assignee": {
+                  "assignee.Id": {
                     "type": "string"
                   },
-                  "businessId": {
+                  "assignee.Name": {
+                    "type": "string"
+                  },
+                  "businessDetails.Id": {
+                    "type": "string"
+                  },
+                  "businessDetails.Name": {
                     "type": "string"
                   },
                   "file": {
@@ -290,16 +293,13 @@
                 "type": {
                   "style": "form"
                 },
-                "businessName": {
-                  "style": "form"
-                },
                 "title": {
                   "style": "form"
                 },
-                "startDate": {
+                "startdate": {
                   "style": "form"
                 },
-                "dueDate": {
+                "duedate": {
                   "style": "form"
                 },
                 "deadline": {
@@ -311,10 +311,16 @@
                 "description": {
                   "style": "form"
                 },
-                "assignee": {
+                "assignee.Id": {
                   "style": "form"
                 },
-                "businessId": {
+                "assignee.Name": {
+                  "style": "form"
+                },
+                "businessDetails.Id": {
+                  "style": "form"
+                },
+                "businessDetails.Name": {
                   "style": "form"
                 },
                 "file": {
@@ -706,6 +712,32 @@
         },
         "additionalProperties": false
       },
+      "AddressModel": {
+        "type": "object",
+        "properties": {
+          "building": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "state": {
+            "type": "string",
+            "nullable": true
+          },
+          "postcode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "FilterReqDto": {
         "type": "object",
         "properties": {
@@ -714,6 +746,20 @@
             "nullable": true
           },
           "value": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "IdNameDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
             "type": "string",
             "nullable": true
           }
@@ -739,11 +785,11 @@
             "type": "string",
             "nullable": true
           },
-          "startDate": {
+          "startdate": {
             "type": "string",
             "format": "date-time"
           },
-          "dueDate": {
+          "duedate": {
             "type": "string",
             "format": "date-time"
           },
@@ -759,8 +805,7 @@
             "nullable": true
           },
           "assignee": {
-            "type": "string",
-            "nullable": true
+            "$ref": "#/components/schemas/IdNameDto"
           }
         },
         "additionalProperties": false
@@ -793,14 +838,11 @@
       },
       "UserSignUpDto": {
         "required": [
-          "city",
-          "country",
+          "address",
           "email",
           "name",
           "password",
-          "postcode",
           "role",
-          "state",
           "username"
         ],
         "type": "object",
@@ -824,21 +866,8 @@
           "role": {
             "$ref": "#/components/schemas/UserRole"
           },
-          "city": {
-            "type": "string",
-            "nullable": true
-          },
-          "country": {
-            "type": "string",
-            "nullable": true
-          },
-          "state": {
-            "type": "string",
-            "nullable": true
-          },
-          "postcode": {
-            "type": "string",
-            "nullable": true
+          "address": {
+            "$ref": "#/components/schemas/AddressModel"
           }
         },
         "additionalProperties": false
