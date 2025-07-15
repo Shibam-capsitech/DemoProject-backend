@@ -2,6 +2,7 @@
 using DemoProject_backend.Enums;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 
@@ -12,24 +13,20 @@ namespace DemoProject_backend.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-        public string tid { get; set; }
-        public string type { get; set; }
-        public string title { get; set; }
-        public DateTime startdate { get; set; }
-        public DateTime duedate { get; set; }
-        public DateTime deadline { get; set; }
-        public TaskPriority priority { get; set; }
-        public string description { get; set; }
-        public IdNameModel assignee { get; set; }
-        public string attachment { get; set; }
-        public List<SubTask>? subtask { get; set; }
-
-        [BsonElement("businessdetails")]
-        public IdNameModel businessDetails { get; set; }
-
-        [BsonElement("createdby")]
-        public CreatedByModel createdBy { get; set; } 
-
+        public string Tid { get; set; }
+        public string Type { get; set; }
+        public string Title { get; set; }
+        public DateTime Startdate { get; set; }
+        public DateTime Duedate { get; set; }
+        public DateTime Deadline { get; set; }
+        public TaskPriority Priority { get; set; }
+        public string Description { get; set; }
+        public IdNameModel Assignee { get; set; }
+        public string Attachment { get; set; }
+        public List<SubTask>? Subtask { get; set; }
+        public IdNameModel BusinessDetails { get; set; }
+        public CreatedByModel CreatedBy { get; set; }
+        public bool? IsActive { get; set; } = true;
     }
 
     public class SubTask
@@ -37,8 +34,9 @@ namespace DemoProject_backend.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-        public string title { get; set; }
-        public string status { get; set; } 
+        public string Title { get; set; }
+        public string Status { get; set; }
+        public bool IsActive { get; set; }
     }
 }
 

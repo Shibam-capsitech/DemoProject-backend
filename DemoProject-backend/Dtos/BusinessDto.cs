@@ -7,13 +7,13 @@ namespace DemoProject_backend.Dtos
 {
     public class CreateBusinessDto
     {
-        public string type { get; set; }
-        public string name { get; set; }
-        public string building { get; set; }
-        public string city { get; set; }
-        public string country { get; set; }
-        public string state { get; set; }
-        public string postcode { get; set; }
+        public string Type { get; set; }
+        public string Name { get; set; }
+        public string Building { get; set; }
+        public string City { get; set; }
+        public string Country { get; set; }
+        public string State { get; set; }
+        public string Postcode { get; set; }
     }
 
     public class GetAllBusinessesDto
@@ -21,22 +21,26 @@ namespace DemoProject_backend.Dtos
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-        public string bid { get; set; }
-        public string type { get; set; }
-        public string name { get; set; }
-        public AddressDto address { get; set; }
-        public CreatedByDto createdby { get; set; }
+        public string BId { get; set; }
+        public string Type { get; set; }
+        public string Name { get; set; }
+        public AddressDto Address { get; set; }
+
+        [BsonElement("CreatedBy")]
+        public CreatedByDto CreatedBy { get; set; }
+        public bool IsActive { get; set; }
     }
 
     public class UpdateBusinessDto
     {
-        public string type { get; set; }
-        public string name { get; set; }
-        public string building { get; set; }
-        public string city { get; set; }
-        public string country { get; set; }
-        public string state { get; set; }
-        public string postcode { get; set; }
+        public string Type { get; set; }
+        public string Name { get; set; }
+        public string Building { get; set; }
+        public string City { get; set; }
+        public string Country { get; set; }
+        public string State { get; set; }
+        public string Postcode { get; set; }
+        public bool IsActive { get; set; }
     }
 
     public class GetFilteredBusinessDto
@@ -44,23 +48,14 @@ namespace DemoProject_backend.Dtos
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-        public string bId { get; set; }
-        public string type { get; set; }
-        public string name { get; set; }
-        public string building { get; set; }
-        public string city { get; set; }
-        public string country { get; set; }
-        public string state { get; set; }
-        public string postcode { get; set; }
+        public string Bid { get; set; }
+        public string Type { get; set; }
+        public string Name { get; set; }
+        public AddressDto Address { get; set; }
 
-        [BsonRepresentation(BsonType.ObjectId)]
-        public string UserId { get; set; }
-
-        public DateTime createdAt { get; set; }
-        public User userDetails { get; set; }
-
-        public string username { get; set; }
-        public string email { get; set; }
+        [BsonElement("CreatedBy")]
+        public CreatedByDto CreatedBy { get; set; }
+        public bool IsActive { get; set; }
     }
 
 }

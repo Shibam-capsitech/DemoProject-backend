@@ -37,9 +37,9 @@ namespace DemoProject_backend.Controllers
             var lastBusiness = await _businessService.GetLastBusinessAsync();
             int nextNumber = 1;
 
-            if (lastBusiness != null && !string.IsNullOrEmpty(lastBusiness.bId))
+            if (lastBusiness != null && !string.IsNullOrEmpty(lastBusiness.BId))
             {
-                string lastNumberPart = lastBusiness.bId.Replace("CID-", "");
+                string lastNumberPart = lastBusiness.BId.Replace("CID-", "");
                 if (int.TryParse(lastNumberPart, out int parsedNumber))
                 {
                     nextNumber = parsedNumber + 1;
@@ -50,18 +50,18 @@ namespace DemoProject_backend.Controllers
             var userName = User.FindFirst("username")?.Value;
             var business = new Business
             {
-                bId = newCustomId,
-                type = dto.type,
-                name = dto.name,
-                address = new AddressModel
+                BId = newCustomId,
+                Type = dto.Type,
+                Name = dto.Name,
+                Address = new AddressModel
                 {
-                    city = dto.city,
-                    country = dto.country,
-                    state = dto.state,
-                    building = dto.building,
-                    postcode = dto.postcode
+                    City = dto.City,
+                    Country = dto.Country,
+                    State = dto.State,
+                    Building = dto.Building,
+                    Postcode = dto.Postcode
                 },
-                createdBy = new CreatedByModel
+                CreatedBy = new CreatedByModel
                 {
                     Id = userId,
                     Name = userName
@@ -74,36 +74,47 @@ namespace DemoProject_backend.Controllers
 
 
         [HttpGet("get-all-businesses")]
-        public async Task<IActionResult> GetAllBusinesses()
+        public async Task<IActionResult> GetOrFilterBusinesses(
+            [FromQuery] string? criteria,
+            [FromQuery] string? value,
+            [FromQuery] string? search)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
             if (userId == null)
-            {
                 return Unauthorized("Unauthorized");
-            }
 
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
-            if(userRole == "Admin")
+            // Case 1: Filtering requested
+            if (!string.IsNullOrWhiteSpace(criteria) && !string.IsNullOrWhiteSpace(value))
             {
-                var businesses = await _businessService.GetAllBusinessesForAdmin();
-                if (businesses == null)
-                {
-                    return NotFound("No businesses found");
-                }
-                return Ok(new { businesses });
+                var filtered = await _businessService.FilterBusinessesAsync(criteria, value);
+                return Ok(new { filteredData = filtered });
             }
+
+            IEnumerable<Business> businesses;
+
+            if (userRole == "Admin")
+                businesses = (IEnumerable<Business>)await _businessService.GetAllBusinessesForAdmin();
             else
+                businesses = (IEnumerable<Business>) await _businessService.GetAllBusinessesAddedByCurrentUser(userId);
+
+            if (businesses == null || !businesses.Any())
+                return NotFound("No businesses found");
+
+            if (!string.IsNullOrWhiteSpace(search))
             {
-                var businesses = await _businessService.GetAllBusinessesAddedByCurrentUser(userId);
-                if (businesses == null)
-                {
-                    return NotFound("No businesses found");
-                }
-                return Ok(new { businesses });
+                var lowerSearch = search.ToLower();
+                businesses = businesses.Where(b =>
+                    (!string.IsNullOrEmpty(b.Name) && b.Name.ToLower().Contains(lowerSearch)) 
+                    //(!string.IsNullOrEmpty(b.type) && b.type.ToLower().Contains(lowerSearch)) ||
+                    //(!string.IsNullOrEmpty(b.Description) && b.Description.ToLower().Contains(lowerSearch))
+                );
             }
+
+            return Ok(new { businesses });
         }
+
 
 
         [HttpGet("delete-businesses/{id}")]
@@ -149,16 +160,22 @@ namespace DemoProject_backend.Controllers
             GetAllBusinessesDto business = await _businessService.GetBusinessById(id);
             var updatedBusiness = new Business
             {
-                bId = business.bid,
-                type = dto.type,
-                name = dto.name,
-                address = new AddressModel
+                BId = business.BId,
+                Type = dto.Type,
+                Name = dto.Name,
+                Address = new AddressModel
                 {
-                    city = dto.city,
-                    country = dto.country,
-                    state = dto.state,
-                    building = dto.building,
-                    postcode = dto.postcode
+                    City = dto.City,
+                    Country = dto.Country,
+                    State = dto.State,
+                    Building = dto.Building,
+                    Postcode = dto.Postcode
+                },
+                CreatedBy = new CreatedByModel
+                {
+                    Name = business.CreatedBy.Name,
+                    Id = business.CreatedBy.Id,
+                    Date = business.CreatedBy.Date
                 }
             };
             await _businessService.UpdateBusiness(updatedBusiness, id);

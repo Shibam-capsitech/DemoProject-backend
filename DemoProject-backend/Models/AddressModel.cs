@@ -5,18 +5,18 @@ namespace DemoProject_backend.Models
     public class AddressModel
     {
         [BsonIgnoreIfDefault, BsonIgnoreIfNull]
-        public string? building { get; set; }
+        public string? Building { get; set; }
 
         [BsonIgnoreIfDefault, BsonIgnoreIfNull]
-        public string? city { get; set; }
+        public string? City { get; set; }
 
         [BsonIgnoreIfDefault, BsonIgnoreIfNull]
-        public string? country { get; set; }
+        public string? Country { get; set; }
 
         [BsonIgnoreIfDefault, BsonIgnoreIfNull]
-        public string? state { get; set; }
+        public string? State { get; set; }
 
         [BsonIgnoreIfDefault, BsonIgnoreIfNull]
-        public string? postcode { get; set; }
+        public string? Postcode { get; set; }
     }
 }

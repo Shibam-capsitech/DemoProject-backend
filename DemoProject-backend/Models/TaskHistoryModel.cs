@@ -12,9 +12,7 @@ namespace DemoProject_backend.Models
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-        [BsonElement("targetedtask")]
         public IdNameModel TargetTask { get; set; }
-        [BsonElement("targetedbusiness")]
         public IdNameModel TargetBusiness { get; set; }
         public CreatedByModel CreatedBy { get; set; }
         public string Description { get; set; }

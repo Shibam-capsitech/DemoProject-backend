@@ -41,14 +41,10 @@ namespace DemoProject_backend.Dtos
     {
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
-
-        public IdNameDto targetedtask { get; set; }     
-        public IdNameDto targetedbusiness { get; set; }      
-
+        public IdNameDto Targetedtask { get; set; }     
+        public IdNameDto Targetedbusiness { get; set; }      
         public CreatedByDto CreatedBy { get; set; }
-
         public string Description { get; set; }
-
         public ChangeTypeEnum ChangeType { get; set; }
     }
 
@@ -68,21 +64,20 @@ namespace DemoProject_backend.Dtos
     //    }
 
     public class TaskHistoryDto
-        {
-            public string Id { get; set; }
-            public IdNameDto Target { get; set; }
-            public CreatedByDto CreatedBy { get; set; }
+    {
+        public string Id { get; set; }
+        public IdNameDto Target { get; set; }
+        public CreatedByDto CreatedBy { get; set; }
 
-            /// <summary>
-            /// Description of the updated task/client
-            /// </summary>
-            public string Description{ get; set; }
+        /// <summary>
+        /// Description of the updated task/client
+        /// </summary>
+        public string Description { get; set; }
         /// <summary>
         /// Which type of change 
         /// </summary>
-            public ChangeTypeEnum ChangeType { get; set; }
-        }
-
+        public ChangeTypeEnum ChangeType { get; set; }
+    }
 
 
 }

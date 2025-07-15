@@ -25,77 +25,14 @@ namespace DemoProject_backend.Services
 
             await _task.InsertOneAsync(task);
         }
-        public async Task<Object> GetAllTaskForAmin()
+        public async Task<List<TaskModel>> GetAllTaskForAdmin()
         {
-            var pipeline = new[]
-            {
-            new BsonDocument("$lookup", new BsonDocument
-            {
-            { "from", "Users" },
-            { "localField", "UserId" },
-            { "foreignField", "_id" },
-            { "as", "userDetails" }
-            }),
-            new BsonDocument("$addFields", new BsonDocument
-            {
-            { "userDetails", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails", 0 }) }
-            }),
-            new BsonDocument("$lookup", new BsonDocument
-            {
-            { "from", "Businesses" },
-            { "localField", "BusinessId" },
-            { "foreignField", "_id" },
-            { "as", "businessDetails" }
-            }),
-            new BsonDocument("$addFields", new BsonDocument
-            {
-            { "businessDetails", new BsonDocument("$arrayElemAt", new BsonArray { "$businessDetails", 0 }) }
-            }),
-            };
-            var docs = await _task.Aggregate<BsonDocument>(pipeline).ToListAsync();
-
-            var tasks = docs.Select(doc =>
-                BsonSerializer.Deserialize<GetAllTaskDto>(doc)
-            ).ToList();
-
+            List<TaskModel> tasks = await _task.Find(_ => true).ToListAsync();
             return tasks;
         }
-        public async Task<List<GetAllTaskDto>> GetAllTaskAddedByCurrentUser(string userId)
+        public async Task<List<TaskModel>> GetAllTaskAddedByCurrentUser(string userId)
         {
-            var objectId = new ObjectId(userId);
-            var pipeline = new[]
-{
-                new BsonDocument("$match", new BsonDocument("UserId", objectId) ),
-            new BsonDocument("$lookup", new BsonDocument
-            {
-            { "from", "Users" },
-            { "localField", "UserId" },
-            { "foreignField", "_id" },
-            { "as", "userDetails" }
-            }),
-            new BsonDocument("$addFields", new BsonDocument
-            {
-            { "userDetails", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails", 0 }) }
-            }),
-            new BsonDocument("$lookup", new BsonDocument
-            {
-            { "from", "Businesses" },
-            { "localField", "BusinessId" },
-            { "foreignField", "_id" },
-            { "as", "businessDetails" }
-            }),
-            new BsonDocument("$addFields", new BsonDocument
-            {
-            { "businessDetails", new BsonDocument("$arrayElemAt", new BsonArray { "$businessDetails", 0 }) }
-            }),
-             
-            };
-            var docs = await _task.Aggregate<BsonDocument>(pipeline).ToListAsync();
-
-            var tasks = docs.Select(doc =>
-                BsonSerializer.Deserialize<GetAllTaskDto>(doc)
-            ).ToList();
-
+            List<TaskModel> tasks = await _task.Find(b=> b.CreatedBy.Id == userId).ToListAsync();
             return tasks;
         }
         public async Task<TaskModel> GetTaskByTaskId(string taskId)
@@ -105,7 +42,7 @@ namespace DemoProject_backend.Services
 
         public async Task<List<TaskModel>> GetTasksByBusinessId(string businessId)
         {
-            return await _task.Find(b => b.businessDetails.Id == businessId).ToListAsync();
+            return await _task.Find(b => b.BusinessDetails.Id == businessId).ToListAsync();
         }
         public async Task UpdateTask(string taskId, TaskModel updatedTask)
         {
@@ -115,7 +52,7 @@ namespace DemoProject_backend.Services
         {
             return await _task
                 .Find(FilterDefinition<TaskModel>.Empty)
-                .SortByDescending(b => b.tid)
+                .SortByDescending(b => b.Tid)
                 .Limit(1)
                 .FirstOrDefaultAsync();
         }
@@ -124,14 +61,14 @@ namespace DemoProject_backend.Services
             var subtask = new SubTask
             {
                 Id= ObjectId.GenerateNewId().ToString(),
-                title = subtaskDto.title,
-                status = subtaskDto.status
+                Title = subtaskDto.Title,
+                Status = subtaskDto.Status
 
             };
 
             //Note:Builders<T>.Update: This is part of MongoDB's C# driver. It helps you build update queries for a collection of type T. In your case, T is TaskModel.
             //.Push(...): This generates a $push MongoDB update operation. It adds an element to an array field(here, SubTask list).
-            var update = Builders<TaskModel>.Update.Push(t => t.subtask, subtask);
+            var update = Builders<TaskModel>.Update.Push(t => t.Subtask, subtask);
 
 
             var result = await _task.UpdateOneAsync(
@@ -153,11 +90,11 @@ namespace DemoProject_backend.Services
             
             var subtaskObjectId = new ObjectId(subtaskId);
             var filter = Builders<TaskModel>.Filter.ElemMatch(
-                t => t.subtask, s => s.Id == subtaskObjectId.ToString()
+                t => t.Subtask, s => s.Id == subtaskObjectId.ToString()
             );
             Console.WriteLine(filter);
             var update = Builders<TaskModel>.Update.Set(
-                "subtask.$.status", newStatus
+                "Subtask.$.Status", newStatus
             );
             Console.WriteLine(update);
             var result = await _task.UpdateOneAsync(filter, update);
@@ -173,17 +110,17 @@ namespace DemoProject_backend.Services
             var subtaskObjectId = ObjectId.Parse(subtaskId);
 
             var filter = Builders<TaskModel>.Filter.ElemMatch(
-                t => t.subtask, s => s.Id == subtaskObjectId.ToString()
+                t => t.Subtask, s => s.Id == subtaskObjectId.ToString()
             );
 
             var update = Builders<TaskModel>.Update.PullFilter(
-                t => t.subtask, s => s.Id == subtaskObjectId.ToString()
+                t => t.Subtask, s => s.Id == subtaskObjectId.ToString()
             );
 
             await _task.UpdateOneAsync(filter, update);
         }
 
-        public async Task<Object> FilterTasksAsync(string criteria, string value)
+        public async Task<List<TaskModel>> FilterTasksAsync(string criteria, string value)
         {
             //var filter = Builders<TaskModel>.Filter.Eq(criteria, value);
             //var result = await _task.Find(filter).ToListAsync();
@@ -193,29 +130,27 @@ namespace DemoProject_backend.Services
             {
             new BsonDocument("$match", new BsonDocument(criteria.ToString(), value )),
             new BsonDocument("$lookup", new BsonDocument
-            {
-            { "from", "Users" },
-            { "localField", "UserId" },
-            { "foreignField", "_id" },
-            { "as", "userDetails" }
-            }),
-            new BsonDocument("$addFields", new BsonDocument
-            {
-            { "userDetails", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails", 0 }) }
-            }),
-            new BsonDocument("$addFields", new BsonDocument
-            {
-            { "username", "$userDetails.username" }
-            }),
-            new BsonDocument("$addFields", new BsonDocument
-            {
-            { "email", "$userDetails.email" }
-            }),
+                {
+                    { "from", "Users" },
+                    { "localField", "CreatedBy._id" },
+                    { "foreignField", "_id" },
+                    { "as", "userDetails" }
+                }),
+                new BsonDocument("$addFields", new BsonDocument
+                {
+                    { "CreatedBy.Name", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails.Username", 0 }) },
+                     { "CreatedBy.Email", new BsonDocument("$arrayElemAt", new BsonArray { "$userDetails.Email", 0 }) }
+
+                }),
+                new BsonDocument("$project", new BsonDocument
+                {
+                    { "userDetails", 0 }
+                })
             };
             var docs = await _task.Aggregate<BsonDocument>(pipeline).ToListAsync();
 
             var tasks = docs.Select(doc =>
-                BsonSerializer.Deserialize<GetFilteredTaskDto>(doc)
+                BsonSerializer.Deserialize<TaskModel>(doc)
             ).ToList();
 
             return tasks;

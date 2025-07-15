@@ -16,49 +16,49 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "type": {
+                  "Type": {
                     "type": "string"
                   },
-                  "name": {
+                  "Name": {
                     "type": "string"
                   },
-                  "building": {
+                  "Building": {
                     "type": "string"
                   },
-                  "city": {
+                  "City": {
                     "type": "string"
                   },
-                  "country": {
+                  "Country": {
                     "type": "string"
                   },
-                  "state": {
+                  "State": {
                     "type": "string"
                   },
-                  "postcode": {
+                  "Postcode": {
                     "type": "string"
                   }
                 }
               },
               "encoding": {
-                "type": {
+                "Type": {
                   "style": "form"
                 },
-                "name": {
+                "Name": {
                   "style": "form"
                 },
-                "building": {
+                "Building": {
                   "style": "form"
                 },
-                "city": {
+                "City": {
                   "style": "form"
                 },
-                "country": {
+                "Country": {
                   "style": "form"
                 },
-                "state": {
+                "State": {
                   "style": "form"
                 },
-                "postcode": {
+                "Postcode": {
                   "style": "form"
                 }
               }
@@ -76,6 +76,29 @@
       "get": {
         "tags": [
           "Business"
+        ],
+        "parameters": [
+          {
+            "name": "criteria",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "value",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -149,49 +172,55 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "type": {
+                  "Type": {
                     "type": "string"
                   },
-                  "name": {
+                  "Name": {
                     "type": "string"
                   },
-                  "building": {
+                  "Building": {
                     "type": "string"
                   },
-                  "city": {
+                  "City": {
                     "type": "string"
                   },
-                  "country": {
+                  "Country": {
                     "type": "string"
                   },
-                  "state": {
+                  "State": {
                     "type": "string"
                   },
-                  "postcode": {
+                  "Postcode": {
                     "type": "string"
+                  },
+                  "IsActive": {
+                    "type": "boolean"
                   }
                 }
               },
               "encoding": {
-                "type": {
+                "Type": {
                   "style": "form"
                 },
-                "name": {
+                "Name": {
                   "style": "form"
                 },
-                "building": {
+                "Building": {
                   "style": "form"
                 },
-                "city": {
+                "City": {
                   "style": "form"
                 },
-                "country": {
+                "Country": {
                   "style": "form"
                 },
-                "state": {
+                "State": {
                   "style": "form"
                 },
-                "postcode": {
+                "Postcode": {
+                  "style": "form"
+                },
+                "IsActive": {
                   "style": "form"
                 }
               }
@@ -247,40 +276,40 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "type": {
+                  "Type": {
                     "type": "string"
                   },
-                  "title": {
+                  "Title": {
                     "type": "string"
                   },
-                  "startdate": {
+                  "Startdate": {
                     "type": "string",
                     "format": "date-time"
                   },
-                  "duedate": {
+                  "Duedate": {
                     "type": "string",
                     "format": "date-time"
                   },
-                  "deadline": {
+                  "Deadline": {
                     "type": "string",
                     "format": "date-time"
                   },
-                  "priority": {
+                  "Priority": {
                     "$ref": "#/components/schemas/TaskPriority"
                   },
-                  "description": {
+                  "Description": {
                     "type": "string"
                   },
-                  "assignee.Id": {
+                  "Assignee.Id": {
                     "type": "string"
                   },
-                  "assignee.Name": {
+                  "Assignee.Name": {
                     "type": "string"
                   },
-                  "businessDetails.Id": {
+                  "BusinessDetails.Id": {
                     "type": "string"
                   },
-                  "businessDetails.Name": {
+                  "BusinessDetails.Name": {
                     "type": "string"
                   },
                   "file": {
@@ -290,37 +319,37 @@
                 }
               },
               "encoding": {
-                "type": {
+                "Type": {
                   "style": "form"
                 },
-                "title": {
+                "Title": {
                   "style": "form"
                 },
-                "startdate": {
+                "Startdate": {
                   "style": "form"
                 },
-                "duedate": {
+                "Duedate": {
                   "style": "form"
                 },
-                "deadline": {
+                "Deadline": {
                   "style": "form"
                 },
-                "priority": {
+                "Priority": {
                   "style": "form"
                 },
-                "description": {
+                "Description": {
                   "style": "form"
                 },
-                "assignee.Id": {
+                "Assignee.Id": {
                   "style": "form"
                 },
-                "assignee.Name": {
+                "Assignee.Name": {
                   "style": "form"
                 },
-                "businessDetails.Id": {
+                "BusinessDetails.Id": {
                   "style": "form"
                 },
-                "businessDetails.Name": {
+                "BusinessDetails.Name": {
                   "style": "form"
                 },
                 "file": {
@@ -341,6 +370,29 @@
       "get": {
         "tags": [
           "Task"
+        ],
+        "parameters": [
+          {
+            "name": "criteria",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "value",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "responses": {
           "200": {

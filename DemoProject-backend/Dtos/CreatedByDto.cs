@@ -8,7 +8,6 @@ namespace DemoProject_backend.Dtos
         /// <summary>
         /// User Id
         /// </summary>
-        [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
         /// <summary>

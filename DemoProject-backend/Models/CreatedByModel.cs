@@ -5,7 +5,6 @@ namespace DemoProject_backend.Models
 {
     public class CreatedByModel
     {
-        [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
         /// <summary>
@@ -16,5 +15,8 @@ namespace DemoProject_backend.Models
         /// Created Date
         /// </summary>
         public DateTime Date { get; set; } = DateTime.UtcNow;
+
+        [BsonIgnoreIfNull]
+        public string Email { get; set; }
     }
 }

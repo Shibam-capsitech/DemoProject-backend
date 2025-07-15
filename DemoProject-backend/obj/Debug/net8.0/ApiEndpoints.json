@@ -8,37 +8,37 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "type",
+        "Name": "Type",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "name",
+        "Name": "Name",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "building",
+        "Name": "Building",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "city",
+        "Name": "City",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "country",
+        "Name": "Country",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "state",
+        "Name": "State",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "postcode",
+        "Name": "Postcode",
         "Type": "System.String",
         "IsRequired": false
       }
@@ -79,12 +79,28 @@
   },
   {
     "ContainingType": "DemoProject_backend.Controllers.BusinessController",
-    "Method": "GetAllBusinesses",
+    "Method": "GetOrFilterBusinesses",
     "RelativePath": "api/Business/get-all-businesses",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "criteria",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "value",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "search",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": []
   },
   {
@@ -112,38 +128,43 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "type",
+        "Name": "Type",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "name",
+        "Name": "Name",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "building",
+        "Name": "Building",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "city",
+        "Name": "City",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "country",
+        "Name": "Country",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "state",
+        "Name": "State",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "postcode",
+        "Name": "Postcode",
         "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "IsActive",
+        "Type": "System.Boolean",
         "IsRequired": false
       },
       {
@@ -210,57 +231,57 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "type",
+        "Name": "Type",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "title",
+        "Name": "Title",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "startdate",
+        "Name": "Startdate",
         "Type": "System.DateTime",
         "IsRequired": false
       },
       {
-        "Name": "duedate",
+        "Name": "Duedate",
         "Type": "System.DateTime",
         "IsRequired": false
       },
       {
-        "Name": "deadline",
+        "Name": "Deadline",
         "Type": "System.DateTime",
         "IsRequired": false
       },
       {
-        "Name": "priority",
+        "Name": "Priority",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "description",
+        "Name": "Description",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "assignee.Id",
+        "Name": "Assignee.Id",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "assignee.Name",
+        "Name": "Assignee.Name",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "businessDetails.Id",
+        "Name": "BusinessDetails.Id",
         "Type": "System.String",
         "IsRequired": false
       },
       {
-        "Name": "businessDetails.Name",
+        "Name": "BusinessDetails.Name",
         "Type": "System.String",
         "IsRequired": false
       },
@@ -316,7 +337,23 @@
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
+    "Parameters": [
+      {
+        "Name": "criteria",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "value",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "search",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
     "ReturnTypes": []
   },
   {

@@ -2,10 +2,10 @@
 {
     public class AddressDto
     {
-        public string? building { get; set; }
-        public string? city { get; set; }
-        public string? country { get; set; }
-        public string? state { get; set; }
-        public string? postcode { get; set; }
+        public string? Building { get; set; }
+        public string? City { get; set; }
+        public string? Country { get; set; }
+        public string? State { get; set; }
+        public string? Postcode { get; set; }
     }
 }

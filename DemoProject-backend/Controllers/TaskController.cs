@@ -58,9 +58,9 @@ namespace DemoProject_backend.Controllers
             var lastTask = await _taskService.GetLastTask();
             int nextNumber = 1;
 
-            if (lastTask != null && !string.IsNullOrEmpty(lastTask.tid))
+            if (lastTask != null && !string.IsNullOrEmpty(lastTask.Tid))
             {
-                string lastNumberPart = lastTask.tid.Replace("TID-", "");
+                string lastNumberPart = lastTask.Tid.Replace("TID-", "");
                 if (int.TryParse(lastNumberPart, out int parsedNumber))
                 {
                     nextNumber = parsedNumber + 1;
@@ -69,38 +69,38 @@ namespace DemoProject_backend.Controllers
             string newCustomId = $"TID-{nextNumber.ToString("D3")}";
             var userName = User.FindFirst("username")?.Value;
             Console.Write(".................");
-            Console.WriteLine(dto.assignee.Id);
+            Console.WriteLine(dto.Assignee.Id);
             Console.WriteLine(userName);
-            User assignee = await _userService.GetUSerById(dto.assignee.Id);
+            User assignee = await _userService.GetUSerById(dto.Assignee.Id);
             Console.WriteLine("Assignee ID: " + assignee.Id);  
-            Console.WriteLine("Assignee Name: " + assignee.username);  
+            Console.WriteLine("Assignee Name: " + assignee.Username);  
 
             var task = new Models.Task
             {
-                tid= newCustomId,
-                type = dto.type,
-                title = dto.title,
-                startdate = dto.startdate,
-                duedate = dto.duedate,
-                deadline = dto.deadline,
-                description = dto.description,
-                assignee = new IdNameModel
+                Tid= newCustomId,
+                Type = dto.Type,
+                Title = dto.Title,
+                Startdate = dto.Startdate,
+                Duedate = dto.Duedate,
+                Deadline = dto.Deadline,
+                Description = dto.Description,
+                Assignee = new IdNameModel
                 {
                     Id = assignee.Id,
-                    Name = assignee.username,
+                    Name = assignee.Username,
                 },
-                attachment = fileResult.SecureUrl.ToString(),
-                businessDetails = new IdNameModel
+                Attachment = fileResult.SecureUrl.ToString(),
+                BusinessDetails = new IdNameModel
                 {
-                    Id = dto.businessDetails.Id,
-                    Name = dto.businessDetails.Name,
+                    Id = dto.BusinessDetails.Id,
+                    Name = dto.BusinessDetails.Name,
                 },
-                createdBy = new CreatedByModel
+                CreatedBy = new CreatedByModel
                 {
                     Id = userId,
                     Name = userName,
                 },
-                subtask = new List<SubTask>(),
+                Subtask = new List<SubTask>(),
             };
             await _taskService.CreateTask(task);
 
@@ -121,12 +121,12 @@ namespace DemoProject_backend.Controllers
                 TargetTask = new IdNameModel
                 {
                     Id = task.Id, 
-                    Name = task.title,
+                    Name = task.Title,
                 },
                 TargetBusiness = new IdNameModel
                 {
-                  Id = task.businessDetails.Id,
-                  Name = task.businessDetails.Name,
+                  Id = task.BusinessDetails.Id,
+                  Name = task.BusinessDetails.Name,
                 },
                 CreatedBy = new CreatedByModel
                 {
@@ -134,7 +134,7 @@ namespace DemoProject_backend.Controllers
                     Name = userName
                 },
                 ChangeType = ChangeTypeEnum.Add,
-                Description = $"<strong>New task created</strong> — <span>Title: {dto.title}</span>"
+                Description = $"<strong>New task created</strong> — <span>Title: {dto.Title}</span>"
             };
 
             await _taskHistoryService.CreateTaskHistory(taskHistory);
@@ -142,8 +142,8 @@ namespace DemoProject_backend.Controllers
 
             var subtask = new SubTask
             {
-                title = "Gather information from client",
-                status = "Waiting",
+                Title = "Gather information from client",
+                Status = "Waiting",
             };
             await _taskService.CreateSubTask(subtask, task.Id);
 
@@ -152,40 +152,48 @@ namespace DemoProject_backend.Controllers
 
 
         [HttpGet("get-all-task")]
-        public async Task<IActionResult> GetAllTasks()
+        public async Task<IActionResult> GetAllTasks([FromQuery] string? criteria, [FromQuery] string? value, [FromQuery] string? search)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null) return Unauthorized("Unauthorized");
 
-            if (userId == null)
-            {
-                return Unauthorized("Unauthorized");
-            }
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-            Console.WriteLine(userRole);
+            List<Models.Task> tasks;
+
             if (userRole == "Admin")
             {
-                var tasks = await _taskService.GetAllTaskForAmin();
-                if (tasks == null)
-                {
-                    return NotFound("No tasks found");
-                }
-                return Ok(new { tasks });
-
+                tasks = await _taskService.GetAllTaskForAdmin();
             }
             else if (userRole == "Manager" || userRole == "Staff")
             {
-                var tasks = await _taskService.GetAllTaskAddedByCurrentUser(userId);
-                if (tasks == null)
-                {
-                    return NotFound("No tasks found");
-                }
-                return Ok(new { tasks });
+                tasks = await _taskService.GetAllTaskAddedByCurrentUser(userId);
             }
             else
             {
                 return BadRequest("Cannot Perform Get Task Action");
             }
+
+            if (tasks == null || !tasks.Any())
+                return NotFound("No tasks found");
+
+            if (!string.IsNullOrWhiteSpace(criteria) && !string.IsNullOrWhiteSpace(value))
+            {
+                tasks = await _taskService.FilterTasksAsync(criteria, value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lower = search.ToLower();
+                tasks = tasks
+                    .Where(t =>
+                        (!string.IsNullOrEmpty(t.Title) && t.Title.ToLower().Contains(lower)) ||
+                        (!string.IsNullOrEmpty(t.Tid) && t.Tid.ToLower().Contains(lower)))
+                    .ToList();
+            }
+
+            return Ok(new { tasks });
         }
+
 
         //[HttpGet("get-tasks")]
         //public async Task<IActionResult> GetTaskAddedByCurrentUser()
@@ -235,64 +243,64 @@ namespace DemoProject_backend.Controllers
             if (task == null)
                 return NotFound("Task not found");
 
-            if (userRole == "Manager" && task.createdBy.Id != userId)
+            if (userRole == "Manager" && task.CreatedBy.Id != userId)
                 return Forbid("Managers can only edit their own tasks.");
             User task_assignee = await _userService.GetUSerById(userId);
             var updatedTask = new Models.Task
             {
                 Id = taskId,
-                type = dto.type,
-                tid = task.tid,
-                title = dto.title,
-                startdate = dto.startdate,
-                duedate = dto.duedate,
-                deadline = dto.deadline,
-                priority = dto.priority,
-                description = dto.description,
-                assignee = new IdNameModel
+                Type = dto.Type,
+                Tid = task.Tid,
+                Title = dto.Title,
+                Startdate = dto.Startdate,
+                Duedate = dto.Duedate,
+                Deadline = dto.Deadline,
+                Priority = dto.Priority,
+                Description = dto.Description,
+                Assignee = new IdNameModel
                 {
                     Id = task_assignee.Id,
-                    Name = task_assignee.name,
+                    Name = task_assignee.Name,
                 },
-                attachment = task.attachment,
-                subtask = task.subtask,
-                businessDetails = new IdNameModel
+                Attachment = task.Attachment,
+                Subtask = task.Subtask,
+                BusinessDetails = new IdNameModel
                 {
                     Id = businessId,
-                    Name = task.businessDetails.Id
+                    Name = task.BusinessDetails.Name
                 },
-                createdBy = new CreatedByModel
+                CreatedBy = new CreatedByModel
                 {
-                    Name= task.createdBy.Name,
-                    Id = task.createdBy.Id
+                    Name= task.CreatedBy.Name,
+                    Id = task.CreatedBy.Id
                 }
             };
 
             var description = $"<strong>Task updated</strong><br/><ul style='padding-left: 16px;'>";
 
-            if (task.title != dto.title)
-                description += $"<li><strong>Title:</strong> <em>{task.title}</em> → <em>{dto.title}</em></li>";
+            if (task.Title != dto.Title)
+                description += $"<li><strong>Title:</strong> <em>{task.Title}</em> → <em>{dto.Title}</em></li>";
 
-            if (task.description != dto.description)
-                description += $"<li><strong>Description:</strong> <em>{task.description}</em> → <em>{dto.description}</em></li>";
+            if (task.Description != dto.Description)
+                description += $"<li><strong>Description:</strong> <em>{task.Description}</em> → <em>{dto.Description}</em></li>";
 
-            if (task.priority != dto.priority)
-                description += $"<li><strong>Priority:</strong> <em>{task.priority}</em> → <em>{dto.priority}</em></li>";
+            if (task.Priority != dto.Priority)
+                description += $"<li><strong>Priority:</strong> <em>{task.Priority}</em> → <em>{dto.Priority}</em></li>";
 
-            if (task.type != dto.type)
-                description += $"<li><strong>Type:</strong> <em>{task.type}</em> → <em>{dto.type}</em></li>";
+            if (task.Type != dto.Type)
+                description += $"<li><strong>Type:</strong> <em>{task.Type}</em> → <em>{dto.Type}</em></li>";
 
-            if (task.assignee.Id != dto.assignee.Id)
-                description += $"<li><strong>Assignee:</strong> <em>{task.assignee.Name}</em> → <em>{dto.assignee.Name}</em></li>";
+            if (task.Assignee.Id != dto.Assignee.Id)
+                description += $"<li><strong>Assignee:</strong> <em>{task.Assignee.Name}</em> → <em>{dto.Assignee.Name}</em></li>";
 
-            if (task.startdate != dto.startdate)
-                description += $"<li><strong>Start Date:</strong> <em>{task.startdate:yyyy-MM-dd}</em> → <em>{dto.startdate:yyyy-MM-dd}</em></li>";
+            if (task.Startdate != dto.Startdate)
+                description += $"<li><strong>Start Date:</strong> <em>{task.Startdate:yyyy-MM-dd}</em> → <em>{dto.Startdate:yyyy-MM-dd}</em></li>";
 
-            if (task.duedate != dto.duedate)
-                description += $"<li><strong>Due Date:</strong> <em>{task.duedate:yyyy-MM-dd}</em> → <em>{dto.duedate:yyyy-MM-dd}</em></li>";
+            if (task.Duedate != dto.Duedate)
+                description += $"<li><strong>Due Date:</strong> <em>{task.Duedate:yyyy-MM-dd}</em> → <em>{dto.Duedate:yyyy-MM-dd}</em></li>";
 
-            if (task.deadline != dto.deadline)
-                description += $"<li><strong>Deadline:</strong> <em>{task.deadline:yyyy-MM-dd}</em> → <em>{dto.deadline:yyyy-MM-dd}</em></li>";
+            if (task.Deadline != dto.Deadline)
+                description += $"<li><strong>Deadline:</strong> <em>{task.Deadline:yyyy-MM-dd}</em> → <em>{dto.Deadline:yyyy-MM-dd}</em></li>";
 
             description += "</ul>";
 
@@ -306,12 +314,12 @@ namespace DemoProject_backend.Controllers
                 TargetTask = new IdNameModel
                 {
                     Id = taskId,
-                    Name = dto.title
+                    Name = dto.Title
                 },
                 TargetBusiness = new IdNameModel
                 {
-                    Id = task.businessDetails.Id,
-                    Name = task.businessDetails.Name
+                    Id = task.BusinessDetails.Id,
+                    Name = task.BusinessDetails.Name
                 },
                 CreatedBy = new CreatedByModel
                 {
@@ -340,14 +348,14 @@ namespace DemoProject_backend.Controllers
 
             var subtask = new SubTask
             {
-                title = dto.title,
-                status = dto.status
+                Title = dto.Title,
+                Status = dto.Status
             };
             await _taskService.CreateSubTask(subtask, taskId);
 
             Models.Task task = await _taskService.GetTaskByTaskId(taskId);
 
-            var description = $"<strong>New subtask added:</strong> <span>{dto.title}</span>";
+            var description = $"<strong>New subtask added:</strong> <span>{dto.Title}</span>";
 
             var userName = User.FindFirst("username")?.Value;
             var taskHistory = new TaskHistoryModel
@@ -355,12 +363,12 @@ namespace DemoProject_backend.Controllers
                 TargetTask = new IdNameModel
                 {
                     Id = taskId,
-                    Name = task.title
+                    Name = task.Title
                 },
                 TargetBusiness = new IdNameModel
                 {
-                    Id = task.businessDetails.Id,
-                    Name = task.businessDetails.Name
+                    Id = task.BusinessDetails.Id,
+                    Name = task.BusinessDetails.Name
                 },
                 CreatedBy = new CreatedByModel
                 {
@@ -386,27 +394,27 @@ namespace DemoProject_backend.Controllers
             Models.Task task = await _taskService.GetTaskByTaskId(taskId);
             if (task == null)
                 return NotFound("Task not found");
-            var subtask = task.subtask.FirstOrDefault(s => s.Id == subtaskId);
+            var subtask = task.Subtask.FirstOrDefault(s => s.Id == subtaskId);
             if (subtask == null)
                 return NotFound("Subtask not found");
 
-            var previousStatus = subtask.status;
+            var previousStatus = subtask.Status;
 
   
             await _taskService.UpdateSubtaskStaus(subtaskId, status);
-            var description = $"<strong>Status of subtask</strong> \"{subtask.title}\" changed from <em>{previousStatus}</em> to <em>{status}</em>";
+            var description = $"<strong>Status of subtask</strong> \"{subtask.Title}\" changed from <em>{previousStatus}</em> to <em>{status}</em>";
             var userName = User.FindFirst("username")?.Value;
             var taskHistory = new TaskHistoryModel
             {
                 TargetTask = new IdNameModel
                 {
                     Id = taskId,
-                    Name = task.title
+                    Name = task.Title
                 },
                 TargetBusiness = new IdNameModel
                 {
-                    Id = task.businessDetails.Id,
-                    Name = task.businessDetails.Name
+                    Id = task.BusinessDetails.Id,
+                    Name = task.BusinessDetails.Name
                 },
                 CreatedBy = new CreatedByModel
                 {
@@ -433,11 +441,11 @@ namespace DemoProject_backend.Controllers
             if (task == null)
                 return NotFound("Task not found");
 
-            var subtask = task.subtask.FirstOrDefault(s => s.Id == subtaskId);
+            var subtask = task.Subtask.FirstOrDefault(s => s.Id == subtaskId);
             if (subtask == null)
                 return NotFound("Subtask not found");
 
-            var deletedSubtaskTitle = subtask.title;
+            var deletedSubtaskTitle = subtask.Title;
 
             await _taskService.DeleteSubTask(subtaskId);
             var description = $"<strong>Subtask deleted:</strong> \"{deletedSubtaskTitle}\"";
@@ -447,12 +455,12 @@ namespace DemoProject_backend.Controllers
                 TargetTask = new IdNameModel
                 {
                     Id = taskId,
-                    Name = task.title
+                    Name = task.Title
                 },
                 TargetBusiness = new IdNameModel
                 {
-                    Id = task.businessDetails.Id,
-                    Name = task.businessDetails.Name
+                    Id = task.BusinessDetails.Id,
+                    Name = task.BusinessDetails.Name
                 },
                 CreatedBy = new CreatedByModel
                 {

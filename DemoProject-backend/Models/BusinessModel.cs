@@ -12,23 +12,24 @@ namespace DemoProject_backend.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 
-        [BsonElement("bid")]
-        public string bId { get; set; }
+        [BsonElement("BId")]
+        public string BId { get; set; }
 
-        public string type { get; set; }
+        public string Type { get; set; }
         /// <summary>
         /// Business Name
         /// </summary>
-        public string name { get; set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// Address of business 
         /// </summary>
         [BsonIgnoreIfDefault, BsonIgnoreIfNull]
-        public AddressModel? address { get; set; }
+        public AddressModel? Address { get; set; }
 
-        [BsonElement("createdby")]
-        public CreatedByModel createdBy { get; set; }
+        [BsonElement("CreatedBy")]
+        public CreatedByModel CreatedBy { get; set; }
+        public bool IsActive { get; set; }
 
     }
 

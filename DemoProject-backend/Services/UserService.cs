@@ -18,7 +18,7 @@ namespace DemoProject_backend.Services
 
         public async Task<User> GetUSerByEmail(string email)
         {
-            return await _user.Find(u=> u.email == email).FirstOrDefaultAsync();
+            return await _user.Find(u=> u.Email == email).FirstOrDefaultAsync();
         }
 
         //because the model Task and thraed task is conflicting
