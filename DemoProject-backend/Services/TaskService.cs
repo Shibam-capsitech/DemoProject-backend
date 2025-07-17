@@ -1,5 +1,6 @@
 ﻿using DemoProject_backend.Dtos;
 using DemoProject_backend.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -13,28 +14,41 @@ namespace DemoProject_backend.Services
     public class TaskService
     {
         private readonly IMongoCollection<TaskModel> _task;
+        private readonly IMongoCollection<User> _user;
         public TaskService(IConfiguration config)
         {
             var settings = config.GetSection("MongoDbSettings").Get<MongoDbSettings>();
             var client = new MongoClient(settings?.ConnectionString);
             var database = client.GetDatabase(settings?.DatabaseName);
             _task = database.GetCollection<TaskModel>(settings?.TaskCollectionName);
+            _user = database.GetCollection<User>(settings?.UserCollectionName);
         }
+
         public async Task CreateTask(TaskModel task)
         {
 
             await _task.InsertOneAsync(task);
         }
+
         public async Task<List<TaskModel>> GetAllTaskForAdmin()
         {
-            List<TaskModel> tasks = await _task.Find(_ => true).ToListAsync();
+            List<TaskModel> tasks = await _task.Find(t=> t.IsActive == true).ToListAsync();
             return tasks;
         }
+
         public async Task<List<TaskModel>> GetAllTaskAddedByCurrentUser(string userId)
         {
-            List<TaskModel> tasks = await _task.Find(b=> b.CreatedBy.Id == userId).ToListAsync();
+            var tasks = await _task.Find(t =>
+                t.IsActive == true &&
+                (
+                    (t.CreatedBy != null && t.CreatedBy.Id == userId) ||
+                    (t.Assignee != null && t.Assignee.Id == userId)
+                )
+            ).ToListAsync();
+
             return tasks;
-        }
+        } 
+
         public async Task<TaskModel> GetTaskByTaskId(string taskId)
         {
             return await _task.Find(t => t.Id == taskId).FirstOrDefaultAsync();
@@ -44,10 +58,12 @@ namespace DemoProject_backend.Services
         {
             return await _task.Find(b => b.BusinessDetails.Id == businessId).ToListAsync();
         }
+
         public async Task UpdateTask(string taskId, TaskModel updatedTask)
         {
             await _task.FindOneAndReplaceAsync(task => task.Id == taskId, updatedTask);
         }
+
         public async Task<TaskModel?> GetLastTask()
         {
             return await _task
@@ -56,6 +72,17 @@ namespace DemoProject_backend.Services
                 .Limit(1)
                 .FirstOrDefaultAsync();
         }
+
+        public async Task DisableTask(string taskId)
+        { 
+
+            var filter = Builders<TaskModel>.Filter.Eq(t => t.Id, taskId);
+            var update = Builders<TaskModel>.Update.Set(t => t.IsActive, false);
+
+            await _task.UpdateOneAsync(filter, update);
+        }
+
+
         public async Task CreateSubTask(SubTask subtaskDto, string taskId)
         {
             var subtask = new SubTask
@@ -105,19 +132,22 @@ namespace DemoProject_backend.Services
             }
         }
 
-        public async Task DeleteSubTask(string subtaskId)
+        public async Task DisableSubTaskAsync(string subtaskId)
         {
-            var subtaskObjectId = ObjectId.Parse(subtaskId);
 
             var filter = Builders<TaskModel>.Filter.ElemMatch(
-                t => t.Subtask, s => s.Id == subtaskObjectId.ToString()
+                t => t.Subtask, s => s.Id == subtaskId
             );
 
-            var update = Builders<TaskModel>.Update.PullFilter(
-                t => t.Subtask, s => s.Id == subtaskObjectId.ToString()
-            );
+            var update = Builders<TaskModel>.Update.Set("Subtask.$.IsActive", false);
 
             await _task.UpdateOneAsync(filter, update);
+        }
+
+        public async Task TaskCompletionToggle(TaskModel updatedTask)
+        {
+            var filter = Builders<TaskModel>.Filter.Eq(t => t.Id, updatedTask.Id);
+            await _task.ReplaceOneAsync(filter, updatedTask);
         }
 
         public async Task<List<TaskModel>> FilterTasksAsync(string criteria, string value)
@@ -155,6 +185,133 @@ namespace DemoProject_backend.Services
 
             return tasks;
         }
+
+        private async Task<List<object>> GroupByDay(DateTime start, DateTime end)
+        {
+            var pipeline = new List<BsonDocument>
+    {
+        new BsonDocument("$match", new BsonDocument
+        {
+            { "CreatedBy.Date", new BsonDocument {
+                { "$gte", start },
+                { "$lte", end }
+            }}
+        }),
+
+        new BsonDocument("$group", new BsonDocument
+        {
+            { "_id", new BsonDocument {
+                { "year", new BsonDocument("$year", "$CreatedBy.Date") },
+                { "month", new BsonDocument("$month", "$CreatedBy.Date") },
+                { "day", new BsonDocument("$dayOfMonth", "$CreatedBy.Date") }
+            }},
+            { "count", new BsonDocument("$sum", 1) }
+        }),
+
+        new BsonDocument("$sort", new BsonDocument
+        {
+            { "_id.year", 1 },
+            { "_id.month", 1 },
+            { "_id.day", 1 }
+        })
+    };
+
+            var result = await _task.Aggregate<BsonDocument>(pipeline).ToListAsync();
+
+            return result.Select(r => new
+            {
+                date = new DateTime(
+                    r["_id"]["year"].AsInt32,
+                    r["_id"]["month"].AsInt32,
+                    r["_id"]["day"].AsInt32
+                ).ToString("yyyy-MM-dd"),
+                count = r["count"].AsInt32
+            }).Cast<object>().ToList();
+        }
+
+        public async Task<object> TaskCreationStats()
+        {
+            var now = DateTime.UtcNow;
+
+            var firstDayThisMonth = new DateTime(now.Year, now.Month, 1);
+            var firstDayLastMonth = firstDayThisMonth.AddMonths(-1);
+            var lastDayLastMonth = firstDayThisMonth.AddDays(-1);
+
+            var thisMonthData = await GroupByDay(firstDayThisMonth, now);
+            var lastMonthData = await GroupByDay(firstDayLastMonth, lastDayLastMonth);
+
+            return new
+            {
+                thisMonth = thisMonthData,
+                lastMonth = lastMonthData
+            };
+        }
+        public async Task<object> TaskCreatedCountByUserPeriods()
+        {
+            var now = DateTime.UtcNow;
+
+            var stats = new Dictionary<string, List<object>>();
+
+            var thisMonthStart = new DateTime(now.Year, now.Month, 1);
+            var nextMonthStart = thisMonthStart.AddMonths(1);
+            var lastMonthStart = thisMonthStart.AddMonths(-1);
+
+            var periods = new[]
+            {
+                new { Key = "thisMonth", Start = thisMonthStart, End = nextMonthStart },
+                new { Key = "lastMonth", Start = lastMonthStart, End = thisMonthStart }
+            };
+
+            foreach (var period in periods)
+            {
+                var pipeline = new BsonDocument[]
+                {
+                    new BsonDocument("$lookup", new BsonDocument
+                    {
+                        { "from", "Tasks" },
+                        { "let", new BsonDocument("userId", "$_id") },
+                        { "pipeline", new BsonArray
+                            {
+                                new BsonDocument("$match", new BsonDocument
+                                {
+                                    { "$expr", new BsonDocument("$and", new BsonArray
+                                        {
+                                            new BsonDocument("$eq", new BsonArray { "$CreatedBy._id", "$$userId" }),
+                                            new BsonDocument("$gte", new BsonArray { "$CreatedBy.Date", period.Start }),
+                                            new BsonDocument("$lt", new BsonArray { "$CreatedBy.Date", period.End })
+                                        })
+                                    }
+                                })
+                            }
+                        },
+                        { "as", "userTasks" }
+                    }),
+                    new BsonDocument("$project", new BsonDocument
+                    {
+                        { "name", "$Name" },
+                        { "count", new BsonDocument("$size", "$userTasks") }
+                    }),
+                    new BsonDocument("$match", new BsonDocument("count", new BsonDocument("$gt", 0))),
+                    new BsonDocument("$sort", new BsonDocument("count", -1))
+                };
+
+                var result = await _user.Aggregate<BsonDocument>(pipeline).ToListAsync();
+
+                stats[period.Key] = result.Select(r => new
+                {
+                    name = r.GetValue("name", "").AsString,
+                    count = r.GetValue("count", 0).ToInt32()
+                }).Cast<object>().ToList();
+            }
+
+            return stats;
+        }
+
+        public async Task<List<Models.Task>> GetAllTasks()
+        {
+            return await _task.Find(_ => true).ToListAsync();
+        }
+
 
 
     }

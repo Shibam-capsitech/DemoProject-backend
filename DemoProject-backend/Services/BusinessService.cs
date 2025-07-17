@@ -4,6 +4,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using System.Reflection.Metadata;
+using System.Threading.Tasks;
 
 namespace DemoProject_backend.Services
 {
@@ -23,10 +24,15 @@ namespace DemoProject_backend.Services
             await _business.InsertOneAsync(business);
         }
 
+        /// <summary>
+        /// Get All businesses only for admin to see all the businesses
+        /// </summary>
+        /// <returns></returns>
         public async Task<object> GetAllBusinessesForAdmin()
         {
             var pipeline = new[]
             {
+                new BsonDocument("$match", new BsonDocument ("IsActive", true )),
                 new BsonDocument("$lookup", new BsonDocument
                 {
                     { "from", "Users" },
@@ -60,6 +66,7 @@ namespace DemoProject_backend.Services
             var objectId = new ObjectId(userId);
             var pipeline = new[]
             {
+            new BsonDocument("$match", new BsonDocument ("IsActive", true )),
             new BsonDocument("$match", new BsonDocument("CreatedBy._id", objectId) ),
             new BsonDocument("$lookup", new BsonDocument
                 {
@@ -87,9 +94,13 @@ namespace DemoProject_backend.Services
 
             return businesses;
         }
-        public async System.Threading.Tasks.Task DeleteBusiness(string id)
+        public async System.Threading.Tasks.Task DisableBusiness(string businessId)
         {
-            await _business.DeleteOneAsync(id);
+
+            var filter = Builders<Business>.Filter.Eq(b => b.Id, businessId);
+            var update = Builders<Business>.Update.Set(b => b.IsActive, false);
+
+            await _business.UpdateOneAsync(filter, update);
         }
 
         public async Task<Business?> GetLastBusinessAsync()

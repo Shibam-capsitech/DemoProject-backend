@@ -83,6 +83,7 @@ namespace DemoProject_backend.Controllers
                 Startdate = dto.Startdate,
                 Duedate = dto.Duedate,
                 Deadline = dto.Deadline,
+                Priority = dto.Priority,
                 Description = dto.Description,
                 Assignee = new IdNameModel
                 {
@@ -236,6 +237,7 @@ namespace DemoProject_backend.Controllers
                 return Unauthorized("Unauthorized");
 
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            var userName = User.FindFirst("username")?.Value;
             if (userRole != "Admin" && userRole != "Manager")
                 return Forbid("Only Admin & Manager have edit access");
 
@@ -243,8 +245,8 @@ namespace DemoProject_backend.Controllers
             if (task == null)
                 return NotFound("Task not found");
 
-            if (userRole == "Manager" && task.CreatedBy.Id != userId)
-                return Forbid("Managers can only edit their own tasks.");
+            if (task.Assignee.Id != userId && task.CreatedBy.Id != userId && userRole != "Admin")
+                return Forbid($"{userName} doesnt have edit access on this !");
             User task_assignee = await _userService.GetUSerById(userId);
             var updatedTask = new Models.Task
             {
@@ -259,8 +261,8 @@ namespace DemoProject_backend.Controllers
                 Description = dto.Description,
                 Assignee = new IdNameModel
                 {
-                    Id = task_assignee.Id,
-                    Name = task_assignee.Name,
+                    Id = dto.Assignee.Id,
+                    Name = dto.Assignee.Name,
                 },
                 Attachment = task.Attachment,
                 Subtask = task.Subtask,
@@ -306,8 +308,6 @@ namespace DemoProject_backend.Controllers
 
 
             await _taskService.UpdateTask(taskId, updatedTask);
-
-            var userName = User.FindFirst("username")?.Value;
             Console.WriteLine(userName);
             var taskHistory = new TaskHistoryModel
             {
@@ -336,10 +336,51 @@ namespace DemoProject_backend.Controllers
             return Ok("Task updated successfully");
         }
 
+        [HttpPost("delete-task/{taskId}")]
+        public async Task<IActionResult> DeleteTaskById(string taskId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized("Unauthorized");
+
+            var task = await _taskService.GetTaskByTaskId(taskId);
+            if (task == null)
+                return NotFound("Task not found");
+
+            await _taskService.DisableTask(taskId);
+
+            var description = $"<strong>Task deleted:</strong> \"{task.Title}\"";
+            var userName = User.FindFirst("username")?.Value;
+            var taskHistory = new TaskHistoryModel
+            {
+                TargetTask = new IdNameModel
+                {
+                    Id = taskId,
+                    Name = task.Title
+                },
+                TargetBusiness = new IdNameModel
+                {
+                    Id = task.BusinessDetails.Id,
+                    Name = task.BusinessDetails.Name
+                },
+                CreatedBy = new CreatedByModel
+                {
+                    Id = userId,
+                    Name = userName
+                },
+                ChangeType = ChangeTypeEnum.Delete,
+                Description = description,
+            };
+
+            await _taskHistoryService.CreateTaskHistory(taskHistory);
+            return Ok("Task deleted !");
+        }
+
         [HttpPost("add-subtask/{taskId}")]
         public async Task<IActionResult> AddSubTask(AddSubTaskDto dto, string taskId)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Models.Task task = await _taskService.GetTaskByTaskId(taskId);
 
             if (userId == null)
             {
@@ -351,9 +392,19 @@ namespace DemoProject_backend.Controllers
                 Title = dto.Title,
                 Status = dto.Status
             };
+
+            if(task.Subtask.Count > 0)
+            {
+                if (task.IsCompleted)
+                {
+                    task.IsCompleted = false;
+                    await _taskService.TaskCompletionToggle(task);
+                }
+            }
+
             await _taskService.CreateSubTask(subtask, taskId);
 
-            Models.Task task = await _taskService.GetTaskByTaskId(taskId);
+
 
             var description = $"<strong>New subtask added:</strong> <span>{dto.Title}</span>";
 
@@ -402,6 +453,20 @@ namespace DemoProject_backend.Controllers
 
   
             await _taskService.UpdateSubtaskStaus(subtaskId, status);
+            task = await _taskService.GetTaskByTaskId(taskId);
+
+            var activeSubtasks = task.Subtask.Where(st => st.IsActive).ToList();
+
+            if (activeSubtasks.Count > 0 && activeSubtasks.All(st => st.Status == "Completed"))
+            {
+                if (!task.IsCompleted)
+                {
+                    task.IsCompleted = true;
+                    await _taskService.TaskCompletionToggle(task);
+                }
+            }
+
+
             var description = $"<strong>Status of subtask</strong> \"{subtask.Title}\" changed from <em>{previousStatus}</em> to <em>{status}</em>";
             var userName = User.FindFirst("username")?.Value;
             var taskHistory = new TaskHistoryModel
@@ -447,7 +512,21 @@ namespace DemoProject_backend.Controllers
 
             var deletedSubtaskTitle = subtask.Title;
 
-            await _taskService.DeleteSubTask(subtaskId);
+            await _taskService.DisableSubTaskAsync(subtaskId);
+
+            task = await _taskService.GetTaskByTaskId(taskId);
+
+            var activeSubtasks = task.Subtask.Where(st => st.IsActive).ToList();
+
+            if (activeSubtasks.Count > 0 && activeSubtasks.All(st => st.Status == "Completed"))
+            {
+                if (!task.IsCompleted)
+                {
+                    task.IsCompleted = true;
+                    await _taskService.TaskCompletionToggle(task);
+                }
+            }
+
             var description = $"<strong>Subtask deleted:</strong> \"{deletedSubtaskTitle}\"";
             var userName = User.FindFirst("username")?.Value;
             var taskHistory = new TaskHistoryModel
@@ -502,6 +581,55 @@ namespace DemoProject_backend.Controllers
             return Ok(new { filteredData = result });
         }
 
+        [HttpGet("get-tasks-creation-by-date-stats")]
+        public async Task<IActionResult> GetTaskCreationByDateStats()
+        {
+            var result = await _taskService.TaskCreationStats();
+            return Ok(result);
+
+        }
+
+
+        [HttpGet("get-tasks-creation-by-user-stats")]
+        public async Task<IActionResult> GetTaskCreationByUserStats()
+        {
+            var result = await _taskService.TaskCreatedCountByUserPeriods();
+            return Ok(result);
+
+        }
+
+        //[HttpGet("analytics/completion-summary")]
+        //public async Task<IActionResult> GetTaskCompletionSummary()
+        //{
+        //    var now = DateTime.UtcNow;
+        //    var startOfCurrentMonth = new DateTime(now.Year, now.Month, 1);
+        //    var startOfPreviousMonth = startOfCurrentMonth.AddMonths(-1);
+        //    var endOfPreviousMonth = startOfCurrentMonth.AddDays(-1);
+
+        //    var allTasks = await _taskService.GetAllTasks();
+
+        //    var completedTasks = allTasks.Where(t => t.IsCompleted && t.CompletedDate != null).ToList();
+
+        //    var incompleteTasks = allTasks.Where(t => !t.IsCompleted).ToList();
+
+
+        //    var previousMonthCompleted = completedTasks
+        //        .Count(t => t.CompletedDate >= startOfPreviousMonth && t.CompletedDate <= endOfPreviousMonth);
+
+        //    var currentMonthCompleted = completedTasks
+        //        .Count(t => t.CompletedDate >= startOfCurrentMonth && t.CompletedDate <= now);
+
+        //    var totalCompleted = completedTasks.Count;
+        //    var totalIncomplete = incompleteTasks.Count;
+
+        //    return Ok(new
+        //    {
+        //        PreviousMonthCompleted = previousMonthCompleted,
+        //        CurrentMonthCompleted = currentMonthCompleted,
+        //        TotalCompleted = totalCompleted,
+        //        TotalIncomplete = totalIncomplete
+        //    });
+        //}
 
     }
 }

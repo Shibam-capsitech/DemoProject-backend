@@ -107,28 +107,6 @@
         }
       }
     },
-    "/api/Business/delete-businesses/{id}": {
-      "get": {
-        "tags": [
-          "Business"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/Business/get-business-by-id/{id}": {
       "get": {
         "tags": [
@@ -234,30 +212,21 @@
         }
       }
     },
-    "/api/Business/filter": {
+    "/api/Business/delete-business-by-id/{businessId}": {
       "post": {
         "tags": [
           "Business"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterReqDto"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterReqDto"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterReqDto"
-              }
+        "parameters": [
+          {
+            "name": "businessId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
-        },
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -470,6 +439,28 @@
         }
       }
     },
+    "/api/Task/delete-task/{taskId}": {
+      "post": {
+        "tags": [
+          "Task"
+        ],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Task/add-subtask/{taskId}": {
       "post": {
         "tags": [
@@ -622,6 +613,30 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Task/get-tasks-creation-by-date-stats": {
+      "get": {
+        "tags": [
+          "Task"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Task/get-tasks-creation-by-user-stats": {
+      "get": {
+        "tags": [
+          "Task"
+        ],
         "responses": {
           "200": {
             "description": "OK"

@@ -78,5 +78,13 @@ namespace DemoProject_backend.Dtos
     {
         public string Title { get; set; }
         public string Status { get; set; }
+ 
     }
+
+    public class UserTaskStatsDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
+
 }

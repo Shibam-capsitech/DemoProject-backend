@@ -26,7 +26,11 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.capsitech.com/v3/index.json": {},
+          "https://nuget.pkg.github.com/actingoffice/index.json": {},
+          "https://nuget.pkg.github.com/capsitech/index.json": {},
+          "https://nuget.pkg.github.com/mukesh-capsitech/index.json": {}
         },
         "frameworks": {
           "net8.0": {

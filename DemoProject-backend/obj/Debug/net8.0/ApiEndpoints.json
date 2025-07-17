@@ -47,31 +47,15 @@
   },
   {
     "ContainingType": "DemoProject_backend.Controllers.BusinessController",
-    "Method": "DeleteBusinessById",
-    "RelativePath": "api/Business/delete-businesses/{id}",
-    "HttpMethod": "GET",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
-      {
-        "Name": "id",
-        "Type": "System.String",
-        "IsRequired": true
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "DemoProject_backend.Controllers.BusinessController",
-    "Method": "FilterBusinesses",
-    "RelativePath": "api/Business/filter",
+    "Method": "DeleteBusiness",
+    "RelativePath": "api/Business/delete-business-by-id/{businessId}",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "filter",
-        "Type": "DemoProject_backend.Dtos.FilterReqDto",
+        "Name": "businessId",
+        "Type": "System.String",
         "IsRequired": true
       }
     ],
@@ -316,6 +300,22 @@
   },
   {
     "ContainingType": "DemoProject_backend.Controllers.TaskController",
+    "Method": "DeleteTaskById",
+    "RelativePath": "api/Task/delete-task/{taskId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "taskId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.TaskController",
     "Method": "FilterTasks",
     "RelativePath": "api/Task/filter",
     "HttpMethod": "POST",
@@ -386,6 +386,26 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.TaskController",
+    "Method": "GetTaskCreationByDateStats",
+    "RelativePath": "api/Task/get-tasks-creation-by-date-stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.TaskController",
+    "Method": "GetTaskCreationByUserStats",
+    "RelativePath": "api/Task/get-tasks-creation-by-user-stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {

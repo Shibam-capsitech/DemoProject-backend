@@ -12,6 +12,9 @@ namespace DemoProject_backend.Models
         [BsonRepresentation(BsonType.ObjectId)]
         public string Id { get; set; }
 
+        /// <summary>
+        /// custom Id for a busieness
+        /// </summary>
         [BsonElement("BId")]
         public string BId { get; set; }
 
@@ -27,9 +30,17 @@ namespace DemoProject_backend.Models
         [BsonIgnoreIfDefault, BsonIgnoreIfNull]
         public AddressModel? Address { get; set; }
 
+        
+        /// <summary>
+        /// business created by which user
+        /// </summary>
         [BsonElement("CreatedBy")]
         public CreatedByModel CreatedBy { get; set; }
-        public bool IsActive { get; set; }
+
+        /// <summary>
+        /// a field for soft delete of business 
+        /// </summary>
+        public bool IsActive { get; set; } = true;
 
     }
 
