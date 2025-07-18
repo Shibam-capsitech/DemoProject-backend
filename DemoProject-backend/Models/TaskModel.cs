@@ -88,6 +88,18 @@ namespace DemoProject_backend.Models
         /// A field to check if the task is comepletd or not 
         /// </summary>
         public bool IsCompleted { get; set; } = false;
+
+        /// <summary>
+        /// Date of completion of a task
+        /// </summary>
+        [BsonIgnoreIfDefault]
+        public DateTime CompletionDate { get; set; }
+
+        /// <summary>
+        /// User who completed this task
+        /// </summary>
+        [BsonIgnoreIfDefault]
+        public IdNameModel CompletedBy { get; set; }
     }
 
     public class SubTask

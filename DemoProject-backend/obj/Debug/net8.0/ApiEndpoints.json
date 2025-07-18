@@ -208,6 +208,22 @@
   },
   {
     "ContainingType": "DemoProject_backend.Controllers.TaskController",
+    "Method": "CompleteTaskById",
+    "RelativePath": "api/Task/complete-task/{taskId}",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "taskId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.TaskController",
     "Method": "CreateTask",
     "RelativePath": "api/Task/create-task",
     "HttpMethod": "POST",
@@ -275,6 +291,16 @@
         "IsRequired": false
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.TaskController",
+    "Method": "GetTaskCompletionStats",
+    "RelativePath": "api/Task/dashboard-stats",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {
@@ -352,6 +378,16 @@
         "Name": "search",
         "Type": "System.String",
         "IsRequired": false
+      },
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -400,7 +436,7 @@
   },
   {
     "ContainingType": "DemoProject_backend.Controllers.TaskController",
-    "Method": "GetTaskCreationByUserStats",
+    "Method": "GetTaskCreationAndCompletionByUserStats",
     "RelativePath": "api/Task/get-tasks-creation-by-user-stats",
     "HttpMethod": "GET",
     "IsController": true,

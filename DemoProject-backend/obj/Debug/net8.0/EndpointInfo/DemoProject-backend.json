@@ -361,6 +361,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
           }
         ],
         "responses": {
@@ -440,6 +458,28 @@
       }
     },
     "/api/Task/delete-task/{taskId}": {
+      "post": {
+        "tags": [
+          "Task"
+        ],
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Task/complete-task/{taskId}": {
       "post": {
         "tags": [
           "Task"
@@ -633,6 +673,18 @@
       }
     },
     "/api/Task/get-tasks-creation-by-user-stats": {
+      "get": {
+        "tags": [
+          "Task"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Task/dashboard-stats": {
       "get": {
         "tags": [
           "Task"

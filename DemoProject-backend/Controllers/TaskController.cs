@@ -151,12 +151,17 @@ namespace DemoProject_backend.Controllers
             return Ok("New task created");
         }
 
-
         [HttpGet("get-all-task")]
-        public async Task<IActionResult> GetAllTasks([FromQuery] string? criteria, [FromQuery] string? value, [FromQuery] string? search)
+        public async Task<IActionResult> GetAllTasks(
+            [FromQuery] string? criteria,
+            [FromQuery] string? value,
+            [FromQuery] string? search,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null) return Unauthorized("Unauthorized");
+            if (userId == null)
+                return Unauthorized("Unauthorized");
 
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
             List<Models.Task> tasks;
@@ -179,7 +184,14 @@ namespace DemoProject_backend.Controllers
 
             if (!string.IsNullOrWhiteSpace(criteria) && !string.IsNullOrWhiteSpace(value))
             {
-                tasks = await _taskService.FilterTasksAsync(criteria, value);
+                if (userRole == "Admin")
+                {
+                    tasks = await _taskService.FilterTasksAsync(criteria, value);
+                }
+                else
+                {
+                    tasks = await _taskService.FilterTasksByUserAsync(criteria, value, userId);
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -192,8 +204,27 @@ namespace DemoProject_backend.Controllers
                     .ToList();
             }
 
-            return Ok(new { tasks });
+            //var totalCount = tasks.Count;
+
+            //tasks = tasks
+            //    .Skip((page - 1) * pageSize)
+            //    .Take(pageSize)
+            //    .ToList();
+
+            return Ok(new
+            {
+                tasks,
+                //pagination = new
+                //{
+                //    currentPage = page,
+                //    pageSize,
+                //    totalCount,
+                //    totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                //}
+            });
         }
+
+
 
 
         //[HttpGet("get-tasks")]
@@ -376,6 +407,15 @@ namespace DemoProject_backend.Controllers
             return Ok("Task deleted !");
         }
 
+        [HttpPost("complete-task/{taskId}")]
+        public async Task<IActionResult> CompleteTaskById(string taskId)
+        {
+            var userName = User.FindFirst("username")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            await _taskService.CompleteTask(taskId,userId,userName);
+            return Ok("Task Updated Successfully");
+        }
+
         [HttpPost("add-subtask/{taskId}")]
         public async Task<IActionResult> AddSubTask(AddSubTaskDto dto, string taskId)
         {
@@ -393,14 +433,14 @@ namespace DemoProject_backend.Controllers
                 Status = dto.Status
             };
 
-            if(task.Subtask.Count > 0)
-            {
-                if (task.IsCompleted)
-                {
-                    task.IsCompleted = false;
-                    await _taskService.TaskCompletionToggle(task);
-                }
-            }
+            //if(task.Subtask.Count > 0)
+            //{
+            //    if (task.IsCompleted)
+            //    {
+            //        task.IsCompleted = false;
+            //        await _taskService.TaskCompletionToggle(task);
+            //    }
+            //}
 
             await _taskService.CreateSubTask(subtask, taskId);
 
@@ -450,22 +490,8 @@ namespace DemoProject_backend.Controllers
                 return NotFound("Subtask not found");
 
             var previousStatus = subtask.Status;
-
   
             await _taskService.UpdateSubtaskStaus(subtaskId, status);
-            task = await _taskService.GetTaskByTaskId(taskId);
-
-            var activeSubtasks = task.Subtask.Where(st => st.IsActive).ToList();
-
-            if (activeSubtasks.Count > 0 && activeSubtasks.All(st => st.Status == "Completed"))
-            {
-                if (!task.IsCompleted)
-                {
-                    task.IsCompleted = true;
-                    await _taskService.TaskCompletionToggle(task);
-                }
-            }
-
 
             var description = $"<strong>Status of subtask</strong> \"{subtask.Title}\" changed from <em>{previousStatus}</em> to <em>{status}</em>";
             var userName = User.FindFirst("username")?.Value;
@@ -514,18 +540,18 @@ namespace DemoProject_backend.Controllers
 
             await _taskService.DisableSubTaskAsync(subtaskId);
 
-            task = await _taskService.GetTaskByTaskId(taskId);
+            //task = await _taskService.GetTaskByTaskId(taskId);
 
-            var activeSubtasks = task.Subtask.Where(st => st.IsActive).ToList();
+            //var activeSubtasks = task.Subtask.Where(st => st.IsActive).ToList();
 
-            if (activeSubtasks.Count > 0 && activeSubtasks.All(st => st.Status == "Completed"))
-            {
-                if (!task.IsCompleted)
-                {
-                    task.IsCompleted = true;
-                    await _taskService.TaskCompletionToggle(task);
-                }
-            }
+            //if (activeSubtasks.Count > 0 && activeSubtasks.All(st => st.Status == "Completed"))
+            //{
+            //    if (!task.IsCompleted)
+            //    {
+            //        task.IsCompleted = true;
+            //        await _taskService.TaskCompletionToggle(task);
+            //    }
+            //}
 
             var description = $"<strong>Subtask deleted:</strong> \"{deletedSubtaskTitle}\"";
             var userName = User.FindFirst("username")?.Value;
@@ -577,9 +603,32 @@ namespace DemoProject_backend.Controllers
                 return BadRequest("Both 'criteria' and 'value' are required.");
             }
 
-            var result = await _taskService.FilterTasksAsync(filter.Criteria, filter.Value);
+            var userId = User.FindFirst("userId")?.Value;
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(userRole))
+            {
+                return Unauthorized("User information missing from token.");
+            }
+
+            IEnumerable<Models.Task> result;
+
+            if (userRole == "Admin")
+            {
+                result = await _taskService.FilterTasksAsync(filter.Criteria, filter.Value);
+            }
+            else if (userRole == "Staff" || userRole == "Manager")
+            {
+                result = await _taskService.FilterTasksByUserAsync(filter.Criteria, filter.Value, userId);
+            }
+            else
+            {
+                return Forbid("Unauthorized role.");
+            }
+
             return Ok(new { filteredData = result });
         }
+
 
         [HttpGet("get-tasks-creation-by-date-stats")]
         public async Task<IActionResult> GetTaskCreationByDateStats()
@@ -591,9 +640,9 @@ namespace DemoProject_backend.Controllers
 
 
         [HttpGet("get-tasks-creation-by-user-stats")]
-        public async Task<IActionResult> GetTaskCreationByUserStats()
+        public async Task<IActionResult> GetTaskCreationAndCompletionByUserStats()
         {
-            var result = await _taskService.TaskCreatedCountByUserPeriods();
+            var result = await _taskService.TaskCreatedAndCompletedCountByUserPeriods();
             return Ok(result);
 
         }
@@ -630,6 +679,13 @@ namespace DemoProject_backend.Controllers
         //        TotalIncomplete = totalIncomplete
         //    });
         //}
+
+        [HttpGet("dashboard-stats")]
+        public async Task<IActionResult> GetTaskCompletionStats()
+        {
+            var stats = await _taskService.GetTaskCompletionStats();
+            return Ok(stats);
+        }
 
     }
 }
