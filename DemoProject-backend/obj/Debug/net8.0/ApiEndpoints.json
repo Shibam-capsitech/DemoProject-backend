@@ -63,6 +63,16 @@
   },
   {
     "ContainingType": "DemoProject_backend.Controllers.BusinessController",
+    "Method": "DownloadBusinessList",
+    "RelativePath": "api/Business/download-business-list",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.BusinessController",
     "Method": "GetOrFilterBusinesses",
     "RelativePath": "api/Business/get-all-businesses",
     "HttpMethod": "GET",
@@ -83,8 +93,28 @@
         "Name": "search",
         "Type": "System.String",
         "IsRequired": false
+      },
+      {
+        "Name": "page",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "pageSize",
+        "Type": "System.Int32",
+        "IsRequired": false
       }
     ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.BusinessController",
+    "Method": "GetAllBusinessNames",
+    "RelativePath": "api/Business/get-all-businesses-name",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": []
   },
   {

@@ -151,6 +151,16 @@ namespace DemoProject_backend.Controllers
             return Ok("New task created");
         }
 
+
+        /// <summary>
+        /// Get all list and also filtered list
+        /// </summary>
+        /// <param name="criteria">Filter criteria</param>
+        /// <param name="value">Filter value</param>
+        /// <param name="search">Search params</param>
+        /// <param name="page">page nos</param>
+        /// <param name="pageSize">page limit</param>
+        /// <returns></returns>
         [HttpGet("get-all-task")]
         public async Task<IActionResult> GetAllTasks(
             [FromQuery] string? criteria,
@@ -182,6 +192,16 @@ namespace DemoProject_backend.Controllers
             if (tasks == null || !tasks.Any())
                 return NotFound("No tasks found");
 
+            //object parsedValue = value;
+            //if (parsedValue != null)
+            //{  
+            //    if (criteria.Equals("IsActive", StringComparison.OrdinalIgnoreCase))
+            //    {
+            //        if (bool.TryParse(value, out var boolVal))
+            //            parsedValue = boolVal;
+            //    }
+            //}
+
             if (!string.IsNullOrWhiteSpace(criteria) && !string.IsNullOrWhiteSpace(value))
             {
                 if (userRole == "Admin")
@@ -204,23 +224,23 @@ namespace DemoProject_backend.Controllers
                     .ToList();
             }
 
-            //var totalCount = tasks.Count;
+            var totalCount = tasks.Count;
 
-            //tasks = tasks
-            //    .Skip((page - 1) * pageSize)
-            //    .Take(pageSize)
-            //    .ToList();
+            tasks = tasks
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
             return Ok(new
             {
                 tasks,
-                //pagination = new
-                //{
-                //    currentPage = page,
-                //    pageSize,
-                //    totalCount,
-                //    totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-                //}
+                pagination = new
+                {
+                    currentPage = page,
+                    pageSize,
+                    totalCount,
+                    totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                }
             });
         }
 

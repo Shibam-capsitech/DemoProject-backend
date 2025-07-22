@@ -1,4 +1,5 @@
-﻿using DemoProject_backend.Dtos;
+﻿using CsvHelper;
+using DemoProject_backend.Dtos;
 using DemoProject_backend.Enums;
 using DemoProject_backend.Models;
 using DemoProject_backend.Services;
@@ -6,8 +7,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using MongoDB.Driver;
+using System.Formats.Asn1;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -81,9 +85,11 @@ namespace DemoProject_backend.Controllers
         /// <returns></returns>
         [HttpGet("get-all-businesses")]
         public async Task<IActionResult> GetOrFilterBusinesses(
-            [FromQuery] string? criteria,
-            [FromQuery] string? value,
-            [FromQuery] string? search)
+        [FromQuery] string? criteria,
+        [FromQuery] string? value,
+        [FromQuery] string? search,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userId == null)
@@ -94,13 +100,29 @@ namespace DemoProject_backend.Controllers
             if (!string.IsNullOrWhiteSpace(criteria) && !string.IsNullOrWhiteSpace(value))
             {
                 var filtered = await _businessService.FilterBusinessesAsync(criteria, value);
-                return Ok(new { filteredData = filtered });
+
+                var totalCount = filtered.Count;
+                var pagedFiltered = filtered
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                return Ok(new
+                {
+                    businesses = pagedFiltered,
+                    pagination = new
+                    {
+                        currentPage = page,
+                        pageSize,
+                        totalCount,
+                        totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+                    }
+                });
             }
 
             IEnumerable<Business> businesses;
-
             if (userRole == "Admin")
-                businesses = (IEnumerable<Business>)await _businessService.GetAllBusinessesForAdmin();
+                businesses = (IEnumerable<Business>) await _businessService.GetAllBusinessesForAdmin();
             else
                 businesses = (IEnumerable<Business>) await _businessService.GetAllBusinessesAddedByCurrentUser(userId);
 
@@ -111,14 +133,61 @@ namespace DemoProject_backend.Controllers
             {
                 var lowerSearch = search.ToLower();
                 businesses = businesses.Where(b =>
-                    (!string.IsNullOrEmpty(b.Name) && b.Name.ToLower().Contains(lowerSearch)) 
-                    //(!string.IsNullOrEmpty(b.type) && b.type.ToLower().Contains(lowerSearch)) ||
-                    //(!string.IsNullOrEmpty(b.Description) && b.Description.ToLower().Contains(lowerSearch))
+                    !string.IsNullOrEmpty(b.Name) && b.Name.ToLower().Contains(lowerSearch)
                 );
             }
 
-            return Ok(new { businesses });
+            var total = businesses.Count();
+            var pagedBusinesses = businesses
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return Ok(new
+            {
+                businesses = pagedBusinesses,
+                pagination = new
+                {
+                    currentPage = page,
+                    pageSize,
+                    totalCount = total,
+                    totalPages = (int)Math.Ceiling((double)total / pageSize)
+                }
+            });
         }
+
+
+        /// <summary>
+        /// Download all list
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("download-business-list")]
+        public async Task<IActionResult> DownloadBusinessList()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized("Unauthorized");
+
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            IEnumerable<Business> businesses;
+
+            if (userRole == "Admin")
+                businesses = (IEnumerable<Business>) await _businessService.GetAllBusinessesForAdmin();
+            else
+                businesses = (IEnumerable<Business>)  await _businessService.GetAllBusinessesAddedByCurrentUser(userId);
+
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+            using var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture);
+
+            await csvWriter.WriteRecordsAsync(businesses);
+            await streamWriter.FlushAsync();
+            memoryStream.Position = 0;
+
+            return File(memoryStream.ToArray(), "text/csv", "businesses.csv");
+        }
+
 
 
         /// <summary>
@@ -201,6 +270,29 @@ namespace DemoProject_backend.Controllers
 
             return Ok("Business deleted !");
         }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("get-all-businesses-name")]
+        public async Task<IActionResult> GetAllBusinessNames()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized("Unauthorized");
+
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+            IEnumerable<Business> businesses;
+            if (userRole == "Admin")
+                businesses = (IEnumerable<Business>)await _businessService.GetAllBusinessesForAdmin();
+            else
+                businesses = (IEnumerable<Business>)await _businessService.GetAllBusinessesAddedByCurrentUser(userId);
+
+            return Ok(new { businesses });
+        }
+
 
 
         //[HttpPost("filter")]

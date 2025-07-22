@@ -50,6 +50,15 @@ C:\Users\CT_USER\source\repos\DemoProject-backend\DemoProject-backend\obj\Debug\
 C:\Users\CT_USER\source\repos\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.pdb
 C:\Users\CT_USER\source\repos\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.genruntimeconfig.cache
 C:\Users\CT_USER\source\repos\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\ref\DemoProject-backend.dll
+C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.csproj.AssemblyReference.cache
+C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.GeneratedMSBuildEditorConfig.editorconfig
+C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.AssemblyInfoInputs.cache
+C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.AssemblyInfo.cs
+C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.csproj.CoreCompileInputs.cache
+C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.MvcApplicationPartsAssemblyInfo.cs
+C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.MvcApplicationPartsAssemblyInfo.cache
+C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.sourcelink.json
 C:\DemoProject-backend\DemoProject-backend\bin\Debug\net8.0\appsettings.Development.json
 C:\DemoProject-backend\DemoProject-backend\bin\Debug\net8.0\appsettings.json
 C:\DemoProject-backend\DemoProject-backend\bin\Debug\net8.0\DemoProject-backend.staticwebassets.endpoints.json
@@ -79,15 +88,6 @@ C:\DemoProject-backend\DemoProject-backend\bin\Debug\net8.0\Swashbuckle.AspNetCo
 C:\DemoProject-backend\DemoProject-backend\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
 C:\DemoProject-backend\DemoProject-backend\bin\Debug\net8.0\System.IdentityModel.Tokens.Jwt.dll
 C:\DemoProject-backend\DemoProject-backend\bin\Debug\net8.0\ZstdSharp.dll
-C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.csproj.AssemblyReference.cache
-C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\rpswa.dswa.cache.json
-C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.GeneratedMSBuildEditorConfig.editorconfig
-C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.AssemblyInfoInputs.cache
-C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.AssemblyInfo.cs
-C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.csproj.CoreCompileInputs.cache
-C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.MvcApplicationPartsAssemblyInfo.cs
-C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.MvcApplicationPartsAssemblyInfo.cache
-C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.sourcelink.json
 C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\rjimswa.dswa.cache.json
 C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
 C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
@@ -103,3 +103,4 @@ C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\refint\DemoProject-b
 C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.pdb
 C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\DemoProject-backend.genruntimeconfig.cache
 C:\DemoProject-backend\DemoProject-backend\obj\Debug\net8.0\ref\DemoProject-backend.dll
+C:\DemoProject-backend\DemoProject-backend\bin\Debug\net8.0\CsvHelper.dll
