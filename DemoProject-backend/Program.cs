@@ -1,9 +1,13 @@
+using DemoProject_backend;
 using DemoProject_backend.Models;
+using DemoProject_backend.Services;
+using Elastic.Clients.Elasticsearch;
+using Elastic.Transport;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using DemoProject_backend;
-using DemoProject_backend.Services;
+
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,6 +55,21 @@ builder.Services.AddSwaggerGen(c =>
     }});
 });
 
+// Load Cloud ID and API Key from appsettings.json or environment variables
+var cloudId = builder.Configuration["ElasticSearch:CloudId"];
+var apiKey = builder.Configuration["ElasticSearch:ApiKey"];
+
+// Setup Elasticsearch client
+
+var settings = new ElasticsearchClientSettings(cloudId, new ApiKey(apiKey))
+                    .DefaultIndex("search-demo"); // set your default index
+
+var elasticClient = new ElasticsearchClient(settings);
+
+// Register the client as singleton
+builder.Services.AddSingleton(elasticClient);
+
+builder.Services.AddSingleton<ElasticSearchService>();
 var jwtKey = builder.Configuration["JwtConfig:TokenKey"] ?? throw new Exception("JWT Key missing in configuration");
 var jwtIssuer = builder.Configuration["JwtConfig:Issuer"];
 var jwtAudience = builder.Configuration["JwtConfig:Audience"];
@@ -85,7 +104,15 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<BusinessService>();
 builder.Services.AddScoped<TaskService>();
 builder.Services.AddScoped<TaskHistoryService>();
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 100 * 1024 * 1024;
+});
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 100 * 1024 * 1024;
+});
 
 
 var app = builder.Build();

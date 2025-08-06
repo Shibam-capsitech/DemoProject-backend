@@ -187,5 +187,10 @@ namespace DemoProject_backend.Services
 
         }
 
+        public async Task<List<Business>> GetAllBusiness()
+        {
+            return _business.Find(_ => true).ToList();
+        }
+
     }
 }

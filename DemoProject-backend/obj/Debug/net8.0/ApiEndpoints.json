@@ -1,6 +1,16 @@
 [
   {
     "ContainingType": "DemoProject_backend.Controllers.BusinessController",
+    "Method": "BulkIndexBusinesses",
+    "RelativePath": "api/Business/bulk-index-businesses",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.BusinessController",
     "Method": "CreateBusiness",
     "RelativePath": "api/Business/create-business",
     "HttpMethod": "POST",
@@ -185,6 +195,22 @@
         "Name": "id",
         "Type": "System.String",
         "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DemoProject_backend.Controllers.PdfCompressorController",
+    "Method": "CompressPdf",
+    "RelativePath": "api/PdfCompressor/compress",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "file",
+        "Type": "Microsoft.AspNetCore.Http.IFormFile",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []

@@ -311,9 +311,9 @@ namespace DemoProject_backend.Services
 
             var periods = new[]
             {
-        new { Key = "thisMonth", Start = thisMonthStart, End = nextMonthStart },
-        new { Key = "lastMonth", Start = lastMonthStart, End = thisMonthStart }
-    };
+                new { Key = "thisMonth", Start = thisMonthStart, End = nextMonthStart },
+                new { Key = "lastMonth", Start = lastMonthStart, End = thisMonthStart }
+            };
 
             foreach (var period in periods)
             {

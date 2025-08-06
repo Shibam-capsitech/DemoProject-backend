@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -24,11 +25,13 @@ namespace DemoProject_backend.Controllers
         private readonly BusinessService _businessService;
         private readonly JwtService _jwtService;
         private readonly CloudinaryService _cloudinaryService;
-        public BusinessController(BusinessService businessService, JwtService jwtService, CloudinaryService cloudinaryService)
+        private readonly ElasticSearchService _elasticSearchService;
+        public BusinessController(BusinessService businessService, JwtService jwtService, CloudinaryService cloudinaryService, ElasticSearchService elasticSearchService)
         {
             _businessService = businessService;
             _jwtService = jwtService;
             _cloudinaryService = cloudinaryService;
+            _elasticSearchService = elasticSearchService;
         }
 
         [HttpPost("create-business")]
@@ -122,20 +125,23 @@ namespace DemoProject_backend.Controllers
 
             IEnumerable<Business> businesses;
             if (userRole == "Admin")
-                businesses = (IEnumerable<Business>) await _businessService.GetAllBusinessesForAdmin();
+               businesses = (IEnumerable<Business>)await _elasticSearchService.GetAllBusinessesForAdminAsync();
+               // businesses = (IEnumerable<Business>)await _businessService.GetAllBusinessesForAdmin();
             else
-                businesses = (IEnumerable<Business>) await _businessService.GetAllBusinessesAddedByCurrentUser(userId);
+                businesses = (IEnumerable<Business>)await _businessService.GetAllBusinessesAddedByCurrentUser(userId);
 
             if (businesses == null || !businesses.Any())
                 return NotFound("No businesses found");
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                var lowerSearch = search.ToLower();
-                businesses = businesses.Where(b =>
-                    !string.IsNullOrEmpty(b.Name) && b.Name.ToLower().Contains(lowerSearch)
-                );
+                businesses = await _elasticSearchService.SearchBusinessesAsync(search);
+                //var lowerSearch = search.ToLower();
+                //businesses = businesses.Where(b =>
+                //    !string.IsNullOrEmpty(b.Name) && b.Name.ToLower().Contains(lowerSearch)
+                //);
             }
+
 
             var total = businesses.Count();
             var pagedBusinesses = businesses
@@ -173,9 +179,9 @@ namespace DemoProject_backend.Controllers
             IEnumerable<Business> businesses;
 
             if (userRole == "Admin")
-                businesses = (IEnumerable<Business>) await _businessService.GetAllBusinessesForAdmin();
+                businesses = (IEnumerable<Business>)await _businessService.GetAllBusinessesForAdmin();
             else
-                businesses = (IEnumerable<Business>)  await _businessService.GetAllBusinessesAddedByCurrentUser(userId);
+                businesses = (IEnumerable<Business>)await _businessService.GetAllBusinessesAddedByCurrentUser(userId);
 
             using var memoryStream = new MemoryStream();
             using var streamWriter = new StreamWriter(memoryStream);
@@ -185,7 +191,12 @@ namespace DemoProject_backend.Controllers
             await streamWriter.FlushAsync();
             memoryStream.Position = 0;
 
-            return File(memoryStream.ToArray(), "text/csv", "businesses.csv");
+            return File(
+             memoryStream.ToArray(),
+             "application/octet-stream",
+             "businesses.csv"
+             );
+
         }
 
 
@@ -206,7 +217,7 @@ namespace DemoProject_backend.Controllers
 
             var business = await _businessService.GetBusinessById(id);
 
-            return Ok(new {business});
+            return Ok(new { business });
         }
 
 
@@ -306,6 +317,15 @@ namespace DemoProject_backend.Controllers
         //    var result = await _businessService.FilterBusinessesAsync(filter.Criteria, filter.Value);
         //    return Ok(new { filteredData = result });
         //}
+        [HttpPost("bulk-index-businesses")]
+        public async Task<IActionResult> BulkIndexBusinesses()
+        {
+            var businesses = await _businessService.GetAllBusiness();
+
+            await _elasticSearchService.BulkIndexBusinessesAsync(businesses);
+
+            return Ok("Indexing complete.");
+        }
 
     }
 }
